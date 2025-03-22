@@ -1,5 +1,6 @@
-#include "Wolfdef.h"
 #include <string.h>
+
+#include "Wolfdef.h"
 
 /**********************************
 
@@ -19,6 +20,10 @@ Every time a door opens or closes the areabyplayer matrix gets recalculated.
 
 **********************************/
 
+
+static connect_t areaconnect[MAXDOORS];	/* Is this area mated with another? */
+
+
 /**********************************
 
 	Insert a connection between two rooms
@@ -28,7 +33,7 @@ Every time a door opens or closes the areabyplayer matrix gets recalculated.
 		
 **********************************/
 
-void AddConnection(Word Area1,Word Area2)
+static void AddConnection(Word Area1,Word Area2)
 {
 	connect_t *DestPtr;
 	
@@ -46,7 +51,7 @@ void AddConnection(Word Area1,Word Area2)
 		
 **********************************/
 
-void RemoveConnection(Word Area1,Word Area2)
+static void RemoveConnection(Word Area1,Word Area2)
 {
 	Word i;
 	connect_t *DestPtr;
@@ -75,7 +80,7 @@ void RemoveConnection(Word Area1,Word Area2)
 	
 **********************************/
 
-void RecursiveConnect(Word areanumber)
+static void RecursiveConnect(Word areanumber)
 {
 	Word i;
 	Word j;
@@ -136,7 +141,7 @@ void OpenDoor(door_t *door)
 	
 **********************************/
 
-void CloseDoor(door_t *door)
+static void CloseDoor(door_t *door)
 {
 	Word tile,tilex,tiley;
 	Word *TilePtr;
@@ -212,7 +217,7 @@ void OperateDoor(Word dooron)
 	
 **********************************/
 
-void DoorOpen(door_t *door)
+static void DoorOpen(door_t *door)
 {
 	door->ticcount+=TicCount;		/* Inc the tic value */
 	if (door->ticcount >= OPENTICS) {	/* Time up? */
@@ -227,11 +232,11 @@ void DoorOpen(door_t *door)
 	
 **********************************/
 
-void DoorOpening(door_t *door)
+static void DoorOpening(door_t *door)
 {
 	Word position;
 	Word area1,area2;
-	Byte *SoundNumPtr;
+	Byte __far* SoundNumPtr;
 	
 	position = door->position;	/* Get the pixel position */
 
@@ -270,10 +275,10 @@ void DoorOpening(door_t *door)
 	
 **********************************/
 
-void DoorClosing(door_t *door)
+static void DoorClosing(door_t *door)
 {
 	int position;
-	Byte *SoundNumPtr;
+	Byte __far* SoundNumPtr;
 
 	position = door->position-(DOORSPEED*TicCount);	/* Close a little more */
 

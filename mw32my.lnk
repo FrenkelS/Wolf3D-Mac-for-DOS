@@ -1,0 +1,57 @@
+
+# MACWOLF.EXE Linker directive file
+
+option quiet
+option map
+option stack=65536
+option stub=wstub
+option static
+debug all
+libpath %WATCOM%\lib386
+libpath %WATCOM%\lib386\dos
+lib noemu387.lib
+format os2 le
+name MACWOLF
+alias MV_Mix8BitMono_=_MV_Mix8BitMono, MV_Mix8BitStereo_=_MV_Mix8BitStereo, MV_Mix16BitMono_=_MV_Mix16BitMono, MV_Mix16BitStereo_=_MV_Mix16BitStereo
+
+file a_al_mid.obj
+file a_blast.obj
+file a_dma.obj
+file a_ll_man.obj
+file a_midi.obj
+file a_mpu401.obj
+file a_multiv.obj
+file a_music.obj
+file a_mv_mix.obj
+file a_pcfx.obj
+file a_taskmn.obj
+file Data.obj
+file Doors.obj
+file EnMove.obj
+file EnThink.obj
+file i_aud32.obj
+file i_input.obj
+file i_main.obj
+file i_pal256.obj
+file i_timer.obj
+file i_vmy.obj
+file InterMis.obj
+file Intro.obj
+file Level.obj
+file Missiles.obj
+file Music.obj
+file PlMove.obj
+file PlStuff.obj
+file PlThink.obj
+file PushWall.obj
+file RefBsp.obj
+file Refresh.obj
+file Refresh2.obj
+file RefSprite.obj
+file Sight.obj
+file SnesMain.obj
+file StateDef.obj
+file w_wad.obj
+file WolfIO.obj
+file WolfMain.obj
+file z_zone.obj

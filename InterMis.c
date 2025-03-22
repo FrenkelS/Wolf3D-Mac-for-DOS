@@ -1,27 +1,26 @@
-#include "WolfDef.h"
-#include <string.h>
 #include <stdlib.h>
+#include <string.h>
+
+#include "WolfDef.h"
 
 extern Word NumberIndex;	/* Hack for drawing numbers */
 static LongWord BJTime;	/* Time to draw BJ? */
 static Word WhichBJ;	/* Which BJ to show */
-static LongWord Indexs[3];		/* Offsets to BJ's true shapes */
-static Byte *BJPtr;			/* Pointer to BJ's shapes */
 static Word ParTime;		/* Par time for level */
 static LongWord BonusScore;	/* Additional points */
 
-#define BONUSX	353
-#define BONUSY	103
-#define	TIMEX	353
-#define TIMEWIDTH 36
-#define	TIMEY	140
-#define	TIMEY2	180
-#define SCOREX 353
-#define SCOREY 332
-#define	RATIOX	353
-#define	RATIOY	217
-#define	RATIOY2	253
-#define	RATIOY3	291
+#define BONUSX	220
+#define BONUSY	54
+#define	TIMEX	223
+#define TIMEWIDTH 22
+#define	TIMEY	74
+#define	TIMEY2	94
+#define SCOREX 220
+#define SCOREY 174
+#define	RATIOX	221
+#define	RATIOY	114
+#define	RATIOY2	133
+#define	RATIOY3	153
 
 /**********************************
 
@@ -29,7 +28,7 @@ static LongWord BonusScore;	/* Additional points */
 	
 **********************************/
 
-static Rect BJRect = {48,73,48+142,73+131};	/* Rect for BJ's picture */
+static Rect BJRect = {26,46,26+82,46+74};	/* Rect for BJ's picture */
 static void ShowBJ(void) 
 {		
 	if ((ReadTick()-BJTime) >= 20) {		/* Time to draw a BJ? */
@@ -37,7 +36,7 @@ static void ShowBJ(void)
 		if (WhichBJ!=2) {			/* Thumbs up? */
 			WhichBJ ^= 1;			/* Nope, toggle breathing */
 		}
-		DrawShape(73,48,&BJPtr[Indexs[WhichBJ]]);		/* Draw BJ */
+		DrawShapeNum(46,26,rInterPics + WhichBJ);		/* Draw BJ */
 		BlastScreen2(&BJRect);				/* Update video */
 	}
 }
@@ -198,7 +197,7 @@ static void RollRatio(Word x,Word y,Word ratio)
 		BonusScore += 10000;
 		DrawIBonus();
 		if (!NoDelay) {
-			BJBreath(60);	/* Breath a little */
+			BJBreath(1 * TICRATE);	/* Breath a little */
 		}
 	}
 }
@@ -209,12 +208,9 @@ static void RollRatio(Word x,Word y,Word ratio)
 	
 **********************************/
 
-void LevelCompleted (void)
+static void LevelCompleted (void)
 {
 	Word k;
-	LongWord *PackPtr;
-	Byte *ShapePtr;
-	LongWord PackLength;
 
 /* setup */
 
@@ -223,21 +219,13 @@ void LevelCompleted (void)
 	
 	IntermissionHack = TRUE;	/* Hack to keep score from drawing twice */
 	NumberIndex = 47;		/* Hack to draw score using an alternate number set */
-	NewGameWindow(1);		/* Force 512 mode screen */
-	PackPtr = LoadAResource(rIntermission);
-	PackLength = PackPtr[0];
-	ShapePtr = (Byte *) AllocSomeMem(PackLength);
-	DLZSS(ShapePtr,(Byte *) &PackPtr[1],PackLength);
-	DrawShape(0,0,ShapePtr);
-	FreeSomeMem(ShapePtr);
-	ReleaseAResource(rIntermission);
-	PackPtr = LoadAResource(rInterPics);
-	PackLength = PackPtr[0];
-	BJPtr = (Byte *)AllocSomeMem(PackLength);
-	DLZSS(BJPtr,(Byte *) &PackPtr[1],PackLength);
-	ReleaseAResource(rInterPics);
-	memcpy(Indexs,BJPtr,12);		/* Copy the index table */
-	
+	DrawRawFullScreen(rIntermission);
+	BlastScreen();
+	DrawRawFullScreen(rIntermission);
+	BlastScreen();
+	DrawRawFullScreen(rIntermission);
+	BlastScreen();
+
 	WhichBJ = 0;		/* Init BJ */
 	BJTime = ReadTick()-50;		/* Force a redraw */
 	BlastScreen();		/* Draw the screen */
@@ -249,7 +237,7 @@ void LevelCompleted (void)
 
 	/* First an initial pause */
 	
-	BJBreath(60);
+	BJBreath(1 * TICRATE);
 
 	/* Display Par Time, Player's Time, and show bonus if any. */
 
@@ -266,7 +254,7 @@ void LevelCompleted (void)
 		BonusScore += k;		/* Add to the bonus */
 		DrawIBonus();			/* Draw the bonus */
 		PlaySound(SND_EXTRA);
-		BJBreath(60);			/* Breath a little */
+		BJBreath(1 * TICRATE);			/* Breath a little */
 	}
 
 /* Show ratios for "terminations", treasure, and secret stuff. */
@@ -287,7 +275,7 @@ void LevelCompleted (void)
 	}
 	if (BonusScore) {	/* Did you get a bonus? */
 		RollScore();
-		BJBreath(60);
+		BJBreath(1 * TICRATE);
 	}
 	if (k==3) {
 		WhichBJ = 2;	/* Draw thumbs up for BJ */
@@ -296,7 +284,6 @@ void LevelCompleted (void)
 	do {
 		ShowBJ();		/* Animate BJ */
 	} while (!WaitTicksEvent(1));		/* Wait for a keypress */
-	FreeSomeMem(BJPtr);		/* Release BJ's shapes */
 	FadeToBlack();		/* Fade away */
 	IntermissionHack = FALSE;		/* Release the hack */
 	NumberIndex = 36;			/* Restore the index */
@@ -333,100 +320,4 @@ void VictoryIntermission (void)
 {
 	FadeToBlack();
 	LevelCompleted();
-}
-
-/**********************************
-
-	Show player the game characters
-	
-**********************************/
-
-#define NUMCAST 12
-Word caststate[NUMCAST] = {
-ST_GRD_WLK1, ST_OFC_WLK1, ST_SS_WLK1,ST_MUTANT_WLK1,
-ST_DOG_WLK1, ST_HANS_WLK1, ST_SCHABBS_WLK1, ST_TRANS_WLK1,
-ST_UBER_WLK1, ST_DKNIGHT_WLK1,ST_MHITLER_WLK1, ST_HITLER_WLK1};
-
-#if 0
-char *casttext[NUMCAST] = { /* 28 chars max */
-"GUARD",
-"OFFICER",
-"ELITE GUARD",
-"MUTANT",
-"MUTANT RAT",
-"HANS GROSSE",
-"DR. SCHABBS",
-"TRANS GROSSE",
-"UBERMUTANT",
-"DEATH KNIGHT",
-"MECHAMEISTER",
-"STAATMEISTER"
-};
-#endif
-
-void CharacterCast(void)
-{
-	Word Enemy,count, cycle;
-	Word up;
-	state_t *StatePtr;
-
-/* reload level and set things up */
-
-	gamestate.mapon = 0;		/* First level again */
-	PrepPlayLoop();				/* Prepare the system */
-	viewx = actors[0].x;		/* Mark the starting x,y */
-	viewy = actors[0].y;
-
-	topspritescale = 32*2;
-
-/* go through the cast */
-
-	Enemy = 0;
-	cycle = 0;
-	do {
-		StatePtr = &states[caststate[Enemy]];		/* Init the state pointer */
-		count = 1;			/* Force a fall through on first pass */
-		up = FALSE;
-		for (;;) {
-			if (++cycle>=60*4) {		/* Time up? */
-				cycle = 0;				/* Reset the clock */
-				if (++Enemy>=NUMCAST) {	/* Next bad guy */
-					Enemy = 0;			/* Reset the bad guy */
-				}
-				break;
-			}
-			if (!--count) {
-				count = StatePtr->tictime;
-				StatePtr = &states[StatePtr->next];
-			}
-			topspritenum = StatePtr->shapenum;	/* Set the formost shape # */
-			RenderView();		/* Show the 3d view */
-			WaitTicks(1);		/* Limit to 15 frames a second */
-			ReadSystemJoystick();	/* Read the joystick */
-			if (!joystick1 && !up) {
-				up = TRUE;
-				continue;
-			}
-			if (!up) {
-				continue;
-			}
-			if (!joystick1) {
-				continue;
-			}
-			if (joystick1 & (JOYPAD_START|JOYPAD_A|JOYPAD_B|JOYPAD_X|JOYPAD_Y)) {
-				Enemy = NUMCAST;
-				break;
-			}
-			if ( (joystick1 & (JOYPAD_TL|JOYPAD_LFT)) && Enemy >0) {
-				Enemy--;
-				break;
-			}
-			if ( (joystick1 & (JOYPAD_TR|JOYPAD_RGT)) && Enemy <NUMCAST-1) {
-				Enemy++;
-				break;
-			}
-		}
-	} while (Enemy < NUMCAST);	/* Still able to show */
-	StopSong();		/* Stop the music */
-	FadeToBlack();	/* Fade out */
 }

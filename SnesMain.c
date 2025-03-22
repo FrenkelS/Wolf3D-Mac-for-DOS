@@ -1,8 +1,8 @@
-#include "WolfDef.h"
-#include <string.h>
-#include <stdlib.h>
-#include <setjmp.h>
 #include <ctype.h>
+#include <setjmp.h>
+#include <string.h>
+
+#include "WolfDef.h"
 
 /**********************************
 
@@ -13,10 +13,9 @@
 void SetupPlayScreen (void)
 {
 	SetAPalette(rBlackPal);		/* Force black palette */
-	ClearTheScreen(BLACK);		/* Clear the screen to black */
+	ClearTheScreen();		/* Clear the screen to black */
 	BlastScreen();
-	firstframe = 1;				/* fade in after drawing first frame */
-	GameViewSize = NewGameWindow(GameViewSize);
+	firstframe = TRUE;				/* fade in after drawing first frame */
 }
 
 /**********************************
@@ -37,7 +36,7 @@ void RunAutoMap(void)
 	vx = viewx>>8;					/* Get my center x,y */
 	vy = viewy>>8;
 	Width = (SCREENWIDTH/16);		/* Width of map in tiles */
-	Height = (VIEWHEIGHT/16);		/* Height of map in tiles */
+	Height = (SCREENHEIGHT/16);		/* Height of map in tiles */
 	CenterX = Width/2;
 	CenterY = Height/2;
 	if (vx>=CenterX) {
@@ -52,7 +51,7 @@ void RunAutoMap(void)
 	}
 	oldjoy = joystick1;
 	do {
-		ClearTheScreen(BLACK);
+		ClearTheScreen();
 		DrawAutomap(vx,vy);
 		do {
 			ReadSystemJoystick();
@@ -65,10 +64,10 @@ void RunAutoMap(void)
 		if (newjoy & JOYPAD_UP && vy) {
 			--vy;
 		}
-		if (newjoy & JOYPAD_LFT && vx) {
+		if (newjoy & (JOYPAD_LFT | JOYPAD_TL) && vx) {
 			--vx;
 		}
-		if (newjoy & JOYPAD_RGT && vx<(MAPSIZE-1)) {
+		if (newjoy & (JOYPAD_RGT | JOYPAD_TR) && vx<(MAPSIZE-1)) {
 			++vx;
 		}
 		if (newjoy & JOYPAD_DN && vy <(MAPSIZE-1)) {
@@ -80,9 +79,8 @@ void RunAutoMap(void)
 /* let the player scroll around until the start button is pressed again */
 	KillSmallFont();			/* Release the tiny font */
 	RedrawStatusBar();
+	I_ClearView();
 	ReadSystemJoystick();
-	mousex = 0;
-	mousey = 0;
 	mouseturn = 0;
 }
 
@@ -92,7 +90,7 @@ void RunAutoMap(void)
 	
 **********************************/
 
-void StartGame(void)
+static void StartGame(void)
 {	
 	if (playstate!=EX_LOADGAME) {	/* Variables already preset */
 		NewGame();				/* init basic game stuff */
@@ -108,30 +106,16 @@ void StartGame(void)
 
 **********************************/
 
-Boolean TitleScreen (void)
+static void TitleScreen (void)
 {
-	Word RetVal;		/* Value to return */
-	LongWord PackLen;
-	LongWord *PackPtr;
-	Byte *ShapePtr;
-
 	playstate = EX_LIMBO;	/* Game is not in progress */
-	NewGameWindow(1);	/* Set to 512 mode */
 	FadeToBlack();		/* Fade out the video */
-	PackPtr = LoadAResource(rTitlePic);
-	PackLen = PackPtr[0];
-	ShapePtr = (Byte *)AllocSomeMem(PackLen);
-	DLZSS(ShapePtr,(Byte *) &PackPtr[1],PackLen);
-	DrawShape(0,0,ShapePtr);
-	ReleaseAResource(rTitlePic);
-	FreeSomeMem(ShapePtr);
+	DrawRawFullScreen(rTitlePic);
 	BlastScreen();
 	StartSong(SongListPtr[0]);
 	FadeTo(rTitlePal);	/* Fade in the picture */
-	BlastScreen();
-	RetVal = WaitTicksEvent(0);		/* Wait for event */
+	WaitTicksEvent(0);		/* Wait for event */
 	playstate = EX_COMPLETED;
-	return TRUE;				/* Return True if canceled */
 }
 
 /**********************************
@@ -140,11 +124,11 @@ Boolean TitleScreen (void)
 
 **********************************/
 
-jmp_buf ResetJmp;
-Boolean JumpOK;
+static jmp_buf ResetJmp;
+static Boolean JumpOK;
 extern Word NumberIndex;
 
-void main(void)
+void WolfMain(void)
 {
 	InitTools();		/* Init the system environment */
 	WaitTick();			/* Wait for a system tick to go by */
@@ -158,17 +142,16 @@ void main(void)
 	FlushKeys();		/* Allow a system event */
 	Intro();			/* Do the game intro */
 	for (;;) {
-		if (TitleScreen()) {		/* Show the game logo */
-			StartSong(SongListPtr[0]);
-			ClearTheScreen(BLACK);	/* Blank out the title page */
-			BlastScreen();
-			SetAPalette(rBlackPal);
-			if (ChooseGameDiff()) {	/* Choose your difficulty */
-				playstate = EX_NEWGAME;	/* Start a new game */
+		TitleScreen();		/* Show the game logo */
+		StartSong(SongListPtr[0]);
+		ClearTheScreen();	/* Blank out the title page */
+		BlastScreen();
+		SetAPalette(rBlackPal);
+		if (ChooseGameDiff()) {	/* Choose your difficulty */
+			playstate = EX_NEWGAME;	/* Start a new game */
 DoGame:
-				FadeToBlack();		/* Fade the screen */
-				StartGame();		/* Play the game */
-			}
+			FadeToBlack();		/* Fade the screen */
+			StartGame();		/* Play the game */
 		}
 	}
 }

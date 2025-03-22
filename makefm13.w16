@@ -1,0 +1,81 @@
+
+# MACWOLF.EXE makefile
+
+# --------------------------------------------------------------------------
+#
+#       0  use 8088 instructions
+#       2  use 286 instructions
+#       3  use 386 instructions
+#      4r  use 80486 timings and register argument passing
+#      bt  build target
+#       c  compile only
+#      d1  include line number debugging information
+#      d2  include full sybolic debugging information
+#      ei  force enums to be of type int
+#       j  change char default from unsigned to signed
+#      ms  small memory model
+#      oa  relax aliasing checking
+#      od  do not optimize
+#  oe[=#]  expand functions inline, # = quads (default 20)
+#      oh  repeated optimizations
+#      oi  use the inline library functions
+#      ol+ loop optimizations, inclusing loop unrolling
+#      om  generate inline 80x87 code for math functions
+#      ot  optimize for time
+#      ox  maximum optimization
+#       s  remove stack overflow checks
+#      wx  maximum warning level
+#     zp1  align structures on bytes
+#      zq  use quiet mode
+#  /i=dir  add include directories
+#
+# --------------------------------------------------------------------------
+
+CCOPTS = -oaxet -oh -ol+ -zp1 -bt=dos -2 -ms -zq -s -wx -DC_ONLY
+
+GLOBOBJS = &
+ a_pcfx.obj &
+ a_taskmn.obj &
+ Data.obj &
+ Doors.obj &
+ EnMove.obj &
+ EnThink.obj &
+ i_aud16.obj &
+ i_input.obj &
+ i_main.obj &
+ i_pal256.obj &
+ i_timer.obj &
+ i_vm13.obj &
+ InterMis.obj &
+ Intro.obj &
+ Level.obj &
+ Missiles.obj &
+ Music.obj &
+ PlMove.obj &
+ PlStuff.obj &
+ PlThink.obj &
+ PushWall.obj &
+ RefBsp.obj &
+ Refresh.obj &
+ Refresh2.obj &
+ RefSprite.obj &
+ Sight.obj &
+ SnesMain.obj &
+ StateDef.obj &
+ w_wad.obj &
+ WolfIO.obj &
+ WolfMain.obj &
+ z_zone.obj
+
+WC16\MACWOLF.EXE : $(GLOBOBJS)
+ cd WC16
+ wlink @..\mw16m13.lnk
+ cd..
+
+.obj : WC16
+
+.c.obj :
+ wcc $(CCOPTS) $[* /fo=WC16\$^&
+
+.asm.obj :
+ nasm $[@ -f obj -o WC16\$^.

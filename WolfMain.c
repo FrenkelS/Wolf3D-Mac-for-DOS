@@ -1,5 +1,12 @@
-#include "wolfdef.h"
 #include <string.h>
+
+#include "wolfdef.h"
+
+
+static Word LastTicCount;			/* Tick value at start of render */
+
+static const Boolean SlowDown = TRUE;			/* Force the game to 15 hz */ /* If true, then limit game to 30hz */
+
 
 /**********************************
 
@@ -18,7 +25,7 @@ Word w_abs(int val)
 	
 **********************************/
 
-Byte rndtable[256] = {
+static const Byte rndtable[256] = {
 	  0,  8, 109, 220, 222, 241, 149, 107,  75, 248, 254, 140,  16,  66,
 	 74, 21, 211,  47,  80, 242, 154,  27, 205, 128, 161,  89,  77,  36,
 	 95,110,  85,  48, 212, 140, 211, 249,  22,  79, 200,  50,  28, 188,
@@ -40,7 +47,7 @@ Byte rndtable[256] = {
 	120,163, 236, 249
 };
 
-Word rndindex = 0;
+static Word rndindex = 0;
 
 Word w_rnd(void)
 {
@@ -56,7 +63,7 @@ Word w_rnd(void)
 		
 **********************************/
 
-Word AngleFromSlope2(Word y,Word x)
+static Word AngleFromSlope2(Word y,Word x)
 {
 	return tantoangle[((LongWord)y<<SLOPEBITS)/x];
 }
@@ -113,6 +120,49 @@ angle_t PointToAngle(fixed_t x, fixed_t y)
 	return ANG270-1-AngleFromSlope2(x,y);	/* octant 5 */
 }
 
+
+static Word redshift;
+static Word goldshift;
+static Word damagecount;
+static Word bonuscount;
+
+void StartBonusFlash(void)
+{
+	bonuscount = 32;
+}
+
+
+void StartDamageFlash(Word damage)
+{
+	damagecount += damage;
+	if (damagecount > 200)
+		damagecount = 200;
+}
+
+
+static void UpdatePaletteShifts(void)
+{
+	Word red, gold;
+
+	if (bonuscount)
+		bonuscount--;
+	if (damagecount)
+		damagecount--;
+
+	red = damagecount / 2;
+	if (red > 8)
+		red = 8;
+
+	gold = bonuscount / 8;
+
+	if (red != redshift || gold != goldshift) {
+		redshift  = red;
+		goldshift = gold;
+		IO_ColorScreen(goldshift, redshift);
+	}
+}
+
+
 /**********************************
 
 	Died() has already spun the view toward the killer
@@ -120,7 +170,7 @@ angle_t PointToAngle(fixed_t x, fixed_t y)
 
 **********************************/
 
-void GameOver(void)
+static void GameOver(void)
 {	
 	topspritenum = S_GAMEOVER;		/* Game over words */
 	topspritescale = 8;	/* Start the scale factor */
@@ -153,7 +203,7 @@ void GameOver(void)
 	
 **********************************/
 
-void VictoryScale(void)
+static void VictoryScale(void)
 {
 	topspritenum = S_VICTORY;
 	topspritescale = 16;
@@ -187,7 +237,7 @@ void VictoryScale(void)
 	
 **********************************/
 
-void Died (void)
+static void Died (void)
 {
 	Word Timer;	/* Time mark */
 	Word Adds;		/* Number of tics elapsed */
@@ -204,7 +254,7 @@ void Died (void)
 /* find angle to face attacker */
 
 	SrcAngle = gamestate.viewangle<<SHORTTOANGLESHIFT;		/* Get the fine current angle */
-	DestAngle = PointToAngle(killx,killy)&(-1<<SHORTTOANGLESHIFT);	/* What's the direction of the kill angle */	
+	DestAngle = PointToAngle(killx,killy)&(0xffff<<SHORTTOANGLESHIFT);	/* What's the direction of the kill angle */	
 	
 /* rotate to attacker */
 
@@ -262,7 +312,7 @@ void Died (void)
 	
 **********************************/
 
-void UpdateFace(void)
+static void UpdateFace(void)
 {
 	Word Base;
 	
@@ -279,47 +329,60 @@ void UpdateFace(void)
 	}
 }
 
+
+static void UpdateFps(void)
+{
+	static     Word fps_frames     = 0;
+	static LongWord fps_timebefore = 0;
+
+	if (ShowFps) {
+		LongWord timenow      = ReadTick();
+		    Word tics_elapsed = timenow - fps_timebefore;
+
+		fps_frames++;
+
+		if (tics_elapsed >= TICRATE) {
+			Word fps_framerate = fps_frames * TICRATE / tics_elapsed;
+			if (fps_framerate > 99)
+				fps_framerate = 99;
+
+			IO_DrawTreasure(fps_framerate);
+
+			fps_frames     = 0;
+			fps_timebefore = timenow;
+		}
+	}
+}
+
+
 /**********************************
 
 	Prepare for a game loop
 	
 **********************************/
 
-void PrepPlayLoop (void)
+static void PrepPlayLoop (void)
 {
 	StartSong(SongListPtr[gamestate.mapon+2]);	/* start music */
-	if (!SetupGameLevel()) {	/* Load the game map */
-		ReleaseMap();			/* Release map memory */
-		ReleaseScalers();		/* Release the compiled scalers */
-		PlaySong(0);
-		while (!SetupGameLevel()) {	/* Try loading it again */
-Again:
-			ReleaseMap();		/* Oh oh... */
-			if (!GameViewSize) {	/* Smallest screen? */
-				BailOut();		/* Leave... */
-			}
-			--GameViewSize;		/* Smaller screen size */
-			GameViewSize = NewGameWindow(GameViewSize);
-		}
-	}
-	if (!StartupRendering(GameViewSize)) {
-		ReleaseScalers();
-		goto Again;
-	}
+	SetupGameLevel();
+	StartupRendering();
+
 	topspritescale = 0;	/* No overlay sprite */
 	faceframe = 1;		/* First face */
 	facecount = 1;		/* change face next tic */
-	firstframe = 1;		/* Force a fade in */
-	NoWeaponDraw = 0;	/* Allow drawing of weapon */
+	firstframe = TRUE;		/* Force a fade in */
+	NoWeaponDraw = FALSE;	/* Allow drawing of weapon */
 	memset(buttonstate,0,sizeof(buttonstate));	/* Kill the mouse system */
+	bonuscount  = 0;
+	damagecount = 0;
+	goldshift   = 0;
+	redshift    = 0;
 	if (playstate!=EX_LOADGAME) {
 		PushWallRec.pwallcount = 0;		/* No pushwalls */
 		gamestate.playtime = 0;		/* Game has started */
 	} else {
 		FinishLoadGame();			/* Finish the load game code */
 	}
-	RedrawStatusBar();	/* Redraw the main bar */
-	mousey = 0;			/* Reset the mouse y */
 	playstate = EX_STILLPLAYING;	/* Game is in progress */
 }
 
@@ -329,7 +392,7 @@ Again:
 	
 **********************************/
 
-void PlayLoop(void)
+static void PlayLoop(void)
 {
 	LongWord Timer;
 	LastTicCount = ReadTick();
@@ -353,6 +416,8 @@ void PlayLoop(void)
 		MoveActors();		/* Move all the bad guys */
 		MoveMissiles();		/* Move all projectiles */	
 		UpdateFace();		/* Draw BJ's face and animate it */
+		UpdatePaletteShifts();
+		UpdateFps();
 		viewx = actors[0].x;	/* Where is the camera? */
 		viewy = actors[0].y;		
 		RenderView();		/* Draw the 3D view */
@@ -379,7 +444,7 @@ void NewGame(void)
 	gamestate.maxammo = 99;		/* Refill the ammo */
 	gamestate.lives = 3;		/* 3 lives */
 	gamestate.nextextra = EXTRAPOINTS;	/* Next free life score needed */
-	gamestate.godmode = 0;		/* Force god mode off */
+	gamestate.godmode = FALSE;		/* Force god mode off */
 }
 
 /**********************************
@@ -424,6 +489,7 @@ skipbrief:
 		ShowGetPsyched();
 		PrepPlayLoop();		/* Init internal variables */
 		EndGetPsyched();
+		RedrawStatusBar();	/* Redraw the main bar */
 		PlayLoop();			/* Play the game */
 		if (playstate == EX_DIED) {		/* Did you die? */
 			--gamestate.lives;			/* Remove a life */
@@ -444,7 +510,7 @@ skipbrief:
 			ReleaseMap();		/* Unload the map */
 			Intermission();				/* Display the wrapup... */
 			ShareWareEnd();			/* End the game for the shareware version */
-/*			VictoryIntermission();		/* Wrapup for victory! */
+//			VictoryIntermission();		/* Wrapup for victory! */
 			return;
 		}
 		ReleaseMap();				/* Unload the game map */

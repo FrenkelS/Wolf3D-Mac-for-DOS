@@ -172,14 +172,6 @@ void ControlMovement(void)
 
 /* Handle all strafe motion */
 
-	if (mousex) {			/* Side to side motion (Strafe mode) */
-		mousex<<=3;
-		if (mousex>0) {
-			Thrust(gamestate.viewangle - ANGLES/4,mousex,&xmove,&ymove);
-		} else {
-			Thrust(gamestate.viewangle + ANGLES/4,-mousex,&xmove,&ymove);
-		}
-	}
 	if (buttonstate[bt_right]) {	/* Slide right keyboard */
 		Thrust(gamestate.viewangle - ANGLES/4, move>>1,&xmove,&ymove);
 	}
@@ -190,22 +182,14 @@ void ControlMovement(void)
 /* Handle all forward motion */
 
 	total = buttonstate[bt_north] ? move : 0;	/* Move ahead? */
-	if (mousey < 0) {			/* Moved the mouse ahead? */
-		total -= mousey<<3;		/* Add it in */
-	}
 	if (total) {
 		Thrust(gamestate.viewangle, total,&xmove,&ymove);	/* Move ahead */
 	}
 	
 	total = buttonstate[bt_south] ? move : 0;	/* Reverse direction */
-	if (mousey > 0) {
-		total += mousey<<3;
-	}
 	if (total) {
 		Thrust(gamestate.viewangle+ANGLES/2, total,&xmove,&ymove);
 	}
-	mousex = 0;		
-	mousey = 0;		/* Reset the mouse motion */
 	mouseturn = 0;
 	
 	if (xmove || ymove) {	/* Any motion? */

@@ -24,7 +24,7 @@ missile_t *GetNewMissile(void)
 	
 **********************************/
 
-void ExplodeMissile(missile_t *MissilePtr)
+static void ExplodeMissile(missile_t *MissilePtr)
 {
 	MissilePtr->flags = 0;		/* Can't harm anyone! */
 	if (MissilePtr->type == MI_PMISSILE) {
@@ -48,7 +48,7 @@ void ExplodeMissile(missile_t *MissilePtr)
 	
 **********************************/
 
-void MissileHitPlayer(missile_t *MissilePtr)
+static void MissileHitPlayer(missile_t *MissilePtr)
 {
 	TakeDamage((w_rnd()&0x38)+8,MissilePtr->x,MissilePtr->y);	/* Inflict damage */
 }
@@ -60,7 +60,7 @@ void MissileHitPlayer(missile_t *MissilePtr)
 	
 **********************************/
 
-Boolean MissileHitEnemy(missile_t *MissilePtr, actor_t *ActorPtr)
+static Boolean MissileHitEnemy(missile_t *MissilePtr, actor_t *ActorPtr)
 {
 	Word Damage;
 	if (MissilePtr->type == MI_PMISSILE) {	/* Rocket? */
@@ -78,7 +78,7 @@ Boolean MissileHitEnemy(missile_t *MissilePtr, actor_t *ActorPtr)
 	
 **********************************/
 
-Boolean CheckMissileActorHits(missile_t *MissilePtr)
+static Boolean CheckMissileActorHits(missile_t *MissilePtr)
 {
 	Word xl,xh,yh;
 	Word x,y;

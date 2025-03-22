@@ -11,7 +11,7 @@ pushwall_t PushWallRec;				/* Record for the single pushwall in progress */
 
 **********************************/
 
-void SetPWallChange(void)
+static void SetPWallChange(void)
 {
 	Word pos;
 	
@@ -40,7 +40,7 @@ void SetPWallChange(void)
 
 **********************************/
 
-void PushWallOne(void)
+static void PushWallOne(void)
 {
 	PushWallRec.pwallcheckx = PushWallRec.pwallx;
 	PushWallRec.pwallchecky = PushWallRec.pwally;

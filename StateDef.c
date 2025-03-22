@@ -1,6 +1,6 @@
 #include "wolfdef.h"
 
-state_t states[NUMSTATES] = {
+const state_t states[NUMSTATES] = {
 {S_GUARD_WLK4, 0, T_STAND, A_NULL, ST_GRD_STND},
 {S_GUARD_WLK1,12, T_CHASE, A_TARGET, ST_GRD_WLK2},
 {S_GUARD_WLK2,12, T_CHASE, A_TARGET, ST_GRD_WLK3},

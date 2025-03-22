@@ -2,6 +2,12 @@
 
 #define SHOTRATE 6
 
+
+static Boolean useheld;					/* Holding down the use key? */
+static Boolean selectheld;					/* Weapon select held down? */
+static Boolean attackheld;					/* Attack button held down? */
+
+
 /**********************************
 
 	Change my weapon to the biggest one I got
@@ -40,9 +46,11 @@ static void OutOfAmmo(void)
 			
 **********************************/
 
-void ChangeWeapon (void)
+static void ChangeWeapon (void)
 {
 	switch(gamestate.weapon) {	/* Which weapon */
+	case WP_KNIFE:
+		break;
 	case WP_PISTOL:
 	case WP_MACHINEGUN:
 	case WP_CHAINGUN:
@@ -53,7 +61,8 @@ void ChangeWeapon (void)
 		break;
 	case WP_MISSILE:
 		IO_DrawAmmo(gamestate.missiles);	/* Draw missiles */
-	}		
+		break;
+	}
 }
 
 /**********************************
@@ -62,9 +71,11 @@ void ChangeWeapon (void)
 			
 **********************************/
 
-void Cmd_Fire(void)
+static void Cmd_Fire(void)
 {
 	switch(gamestate.weapon) {
+	case WP_KNIFE:
+		break;
 	case WP_CHAINGUN:
 	case WP_MACHINEGUN:
 	case WP_PISTOL:
@@ -81,6 +92,7 @@ void Cmd_Fire(void)
 		if (!gamestate.missiles) {
 			OutOfAmmo();	/* Change the weapon */
 		}
+		break;
 	}
 	gamestate.attackframe = 1;		/* Begin the attack */
 	gamestate.attackcount = SHOTRATE;		/* Time before next action */
@@ -92,7 +104,7 @@ void Cmd_Fire(void)
 			
 **********************************/
 
-void Cmd_Use(void)
+static void Cmd_Use(void)
 {
 	Word dir;		/* Direction facing */
 	Word tile;		/* Tile tested */
@@ -155,7 +167,7 @@ void Cmd_Use(void)
 			
 **********************************/
 
-void Cmd_ChangeWeapon(void)
+static void Cmd_ChangeWeapon(void)
 {                                                                                                                                                                                                                                                                                                                                                                                       
 	for (;;) {
 		++gamestate.pendingweapon;		/* Next weapon */
@@ -194,12 +206,12 @@ void Cmd_ChangeWeapon(void)
 
 /**********************************
 
-	Sets actor to the closest enemy in the line of fire, or 0
+	Sets actor to the closest enemy in the line of fire, or NULL
 	if there is no valid target
 			
 **********************************/
 
-actor_t *TargetEnemy (void)
+static actor_t *TargetEnemy (void)
 {
 	Word *xe;
 	Word i;
@@ -214,8 +226,8 @@ actor_t *TargetEnemy (void)
 		do {
 			dseg = &vissprites[xe[0]&(MAXVISSPRITES-1)];
 			if (dseg->actornum) {	/* static sprite or missile */
-				if (xscale[CENTERX] <= dseg->clipscale) {	/* Not obscured by a wall*/
-					if (dseg->x1 <= CENTERX+8 && dseg->x2 >= CENTERX-8) {
+				if (xscale[centerx] <= dseg->clipscale) {	/* Not obscured by a wall*/
+					if (dseg->x1 <= centerx+8 && dseg->x2 >= centerx-8) {
 						ActorPtr = &actors[dseg->actornum];		/* Get pointer to the actor */
 						if (!(ActorPtr->flags & FL_DEAD)) {		/* Dead already? */
 							return ActorPtr;			/* Shoot me! */
@@ -226,7 +238,7 @@ actor_t *TargetEnemy (void)
 			--xe;
 		} while (--i);
 	}
-	return 0;		/* No actor in range */
+	return NULL;		/* No actor in range */
 }
 
 /**********************************
@@ -235,7 +247,7 @@ actor_t *TargetEnemy (void)
 			
 **********************************/
 
-void KnifeAttack(void)
+static void KnifeAttack(void)
 {
 	actor_t *ActorPtr;
 	
@@ -256,7 +268,7 @@ void KnifeAttack(void)
 			
 **********************************/
 
-void GunAttack(void)
+static void GunAttack(void)
 {
 	Word Damage;
 	actor_t *ActorPtr;
@@ -292,7 +304,7 @@ void GunAttack(void)
 			
 **********************************/
 
-void FlameAttack(void)
+static void FlameAttack(void)
 {
 	int	x;		/* Sine,cos value */
 	missile_t *MissilePtr;	/* Pointer to new missile record */
@@ -325,7 +337,7 @@ void FlameAttack(void)
 			
 **********************************/
 
-void MissileAttack(void)
+static void MissileAttack(void)
 {
 	int	x;		/* Sine,Cos value */	
 	missile_t *MissilePtr;	/* Pointer to new missile record */
@@ -498,6 +510,8 @@ void MovePlayer(void)
 
 	if (gamestate.attackframe == 5) {		/* End the attack */
 		switch (gamestate.weapon) {
+		case WP_KNIFE:
+			break;
 		case WP_CHAINGUN:
 		case WP_MACHINEGUN:
 		case WP_PISTOL:
@@ -519,6 +533,7 @@ void MovePlayer(void)
 			if (!gamestate.missiles) {	/* Out of missiles? */
 				OutOfAmmo();		/* Switch weapons */
 			}
+			break;
 		}		
 		gamestate.attackcount = 0;		/* Shut down the attack */
 		gamestate.attackframe = 0;

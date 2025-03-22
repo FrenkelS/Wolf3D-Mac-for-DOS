@@ -7,7 +7,7 @@
 
 **********************************/
 
-void PlaceItemType(Word shape,actor_t *ActorPtr)
+static void PlaceItemType(Word shape,actor_t *ActorPtr)
 {
 	Word tile;
 	Word x,y;
@@ -42,7 +42,7 @@ void PlaceItemType(Word shape,actor_t *ActorPtr)
 	
 **********************************/
 
-void KillActor(actor_t *ActorPtr)
+static void KillActor(actor_t *ActorPtr)
 {
 	Word x,y;
 	
@@ -62,6 +62,11 @@ void KillActor(actor_t *ActorPtr)
 	case CL_UBER:
 	case CL_DKNIGHT:
 		PlaceItemType(S_G_KEY,ActorPtr);	/* Drop a key */
+		break;
+	case CL_DOG:
+	case CL_MECHAHITLER:
+	case CL_HITLER:
+	case CL_PLAYER:
 		break;
 	}
 	++gamestate.killcount;		/* I killed someone! */
@@ -127,7 +132,7 @@ void DamageActor(Word damage,actor_t *ActorPtr)
 		
 **********************************/
 
-void A_Throw(actor_t *ActorPtr)
+static void A_Throw(actor_t *ActorPtr)
 {
 	Word angle;
 	int	speed;
@@ -159,7 +164,9 @@ void A_Throw(actor_t *ActorPtr)
 		
 **********************************/
 
-void A_Launch(actor_t *ActorPtr)
+static void A_Shoot(actor_t *ActorPtr);
+
+static void A_Launch(actor_t *ActorPtr)
 {
 	Word angle;
 	int	speed;
@@ -192,7 +199,7 @@ void A_Launch(actor_t *ActorPtr)
 		
 **********************************/
 
-void A_Scream(actor_t *ActorPtr)
+static void A_Scream(actor_t *ActorPtr)
 {
 	Word Sound,i;
 	
@@ -215,8 +222,9 @@ void A_Scream(actor_t *ActorPtr)
 		
 **********************************/
 
-void A_Thud(actor_t *ActorPtr)
+static void A_Thud(actor_t *ActorPtr)
 {
+	UNUSED(ActorPtr);
 	PlaySound(SND_BODYFALL);
 }
 
@@ -226,8 +234,9 @@ void A_Thud(actor_t *ActorPtr)
 		
 **********************************/
 
-void A_Victory(actor_t *ActorPtr)
+static void A_Victory(actor_t *ActorPtr)
 {
+	UNUSED(ActorPtr);
 	playstate = EX_COMPLETED;
 }
 
@@ -237,7 +246,7 @@ void A_Victory(actor_t *ActorPtr)
 		
 **********************************/
 
-void A_HitlerMorph(actor_t *ActorPtr)
+static void A_HitlerMorph(actor_t *ActorPtr)
 {
 	missile_t *MissilePtr;
 	
@@ -262,7 +271,7 @@ void A_HitlerMorph(actor_t *ActorPtr)
 		
 **********************************/
 
-void A_Shoot(actor_t *ActorPtr)
+static void A_Shoot(actor_t *ActorPtr)
 {
 	Word damage;		/* Damage to inflict */
 	Word distance;
@@ -330,7 +339,7 @@ void A_Shoot(actor_t *ActorPtr)
 		
 **********************************/
 
-void A_Bite(actor_t *ActorPtr)
+static void A_Bite(actor_t *ActorPtr)
 {
 	Word dmg;
 	
@@ -372,9 +381,9 @@ Word CalcDistance(actor_t *ActorPtr)
 		
 **********************************/
 
-Word shootchance[8] = {256,64,32,24,20,16,12,8};
+static Word shootchance[8] = {256,64,32,24,20,16,12,8};
 
-void A_Target(actor_t *ActorPtr)
+static void A_Target(actor_t *ActorPtr)
 {
 	Word chance;	/* % chance of hit */
 	Word distance;	/* Distance of critters */
@@ -419,7 +428,7 @@ attack:		/* go into attack frame*/
 		
 **********************************/
 
-void A_MechStep(actor_t *ActorPtr)
+static void A_MechStep(actor_t *ActorPtr)
 {
 	PlaySound(SND_MECHSTEP|0x8000);	/* Step sound */
 	A_Target(ActorPtr);	/* Shoot player */
@@ -431,7 +440,7 @@ void A_MechStep(actor_t *ActorPtr)
 		
 **********************************/
 
-void T_Chase(actor_t *ActorPtr)
+static void T_Chase(actor_t *ActorPtr)
 {
 	Word move;
 	
@@ -487,16 +496,19 @@ void T_Chase(actor_t *ActorPtr)
 
 typedef void (*call_t)(actor_t *ActorPtr);
 
-static void A_Nothing(actor_t *ActorPtr) {}
+static void A_Nothing(actor_t *ActorPtr)
+{
+	UNUSED(ActorPtr);
+}
 
-call_t thinkcalls[] = {
+static call_t thinkcalls[] = {
 	A_Nothing,	/* No action */
 	T_Stand,	/* Stand at attention */
 	T_Chase		/* Chase the player */
 };
 
 
-call_t actioncalls[] = {
+static call_t actioncalls[] = {
 	A_Nothing,
 	A_Target,
 	A_Shoot,
@@ -513,7 +525,7 @@ call_t actioncalls[] = {
 void MoveActors(void)
 {
 	Word i;		/* Index */
-	state_t *StatePtr;	/* Pointer to state logic */
+	const state_t *StatePtr;	/* Pointer to state logic */
 	actor_t *ActorPtr;	/* Pointer to Actor code */
 	
 	if (numactors<2) {	/* No actors to check? */

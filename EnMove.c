@@ -1,10 +1,10 @@
 /* enmove.c*/
 #include "wolfdef.h"
 
-dirtype opposite[9] =
+static dirtype opposite[9] =
 	{west,southwest,south,southeast,east,northeast,north,northwest,nodir};
 
-dirtype diagonal[9][9] = {
+static dirtype diagonal[9][9] = {
 /* east */	{nodir,nodir,northeast,nodir,nodir,nodir,southeast,nodir,nodir},
 			{nodir,nodir,nodir,nodir,nodir,nodir,nodir,nodir,nodir},
 /* north */ {northeast,nodir,nodir,nodir,northwest,nodir,nodir,nodir,nodir},
@@ -24,7 +24,7 @@ dirtype diagonal[9][9] = {
 
 void NewState(actor_t *ActorPtr,stateindex_t state)
 {
-	state_t *StatePtr;
+	const state_t *StatePtr;
 	StatePtr = &states[state];	/* Get the state record pointer */
 	ActorPtr->state = state;		/* Set the actor's state */
 	ActorPtr->ticcount = StatePtr->tictime;	/* Set the initial tick value */
@@ -57,7 +57,7 @@ void NewState(actor_t *ActorPtr,stateindex_t state)
 	
 **********************************/
 
-Boolean CheckDiag(Word x,Word y)
+static Boolean CheckDiag(Word x,Word y)
 {
 	/* anything blocking stops diagonal move*/
 	if (tilemap[y][x]&(TI_BLOCKMOVE|TI_ACTOR)) {
@@ -74,7 +74,7 @@ Boolean CheckDiag(Word x,Word y)
 	
 **********************************/
 
-Word CheckSide(Word x,Word y,actor_t *ActorPtr)
+static Word CheckSide(Word x,Word y,actor_t *ActorPtr)
 {
 	Word temp;
 

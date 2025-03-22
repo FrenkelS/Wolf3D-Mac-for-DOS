@@ -1,6 +1,6 @@
 #include "WolfDef.h"
 
-static Word checkcoord[11][4] = {	/* Indexs to the bspcoord table */
+static const Word checkcoord[11][4] = {	/* Indexs to the bspcoord table */
 {3,0,2,1},
 {3,0,2,0},
 {3,1,2,0},
@@ -13,13 +13,24 @@ static Word checkcoord[11][4] = {	/* Indexs to the bspcoord table */
 {2,1,3,1},
 {2,1,3,0}};
 
+
+static Word rw_maxtex;
+static Word rw_mintex;
+static LongWord rw_scalestep;
+static Word rw_midpoint;
+static Boolean rw_downside;		/* True for dir_east and dir_south*/
+static int rw_centerangle;
+static Byte *rw_texture;
+static LongWord rw_scale;
+
+
 /**********************************
 
 	Draw a 3-D textured polygon, must be done FAST!
 		
 **********************************/
 
-void RenderWallLoop(Word x1,Word x2,Word distance)
+static void RenderWallLoop(Word x1,Word x2,Word distance)
 {
 	fixed_t	texturecolumn;
 	Word tile,scaler, angle;
@@ -76,7 +87,7 @@ void RenderWallLoop(Word x1,Word x2,Word distance)
 ======================
 */
 
-void RenderWallRange (Word start,Word stop,saveseg_t *seg,Word distance)
+static void RenderWallRange (Word start,Word stop,saveseg_t __far* seg,Word distance)
 {
 	LongWord scale2;
 	Word vangle;
@@ -122,9 +133,9 @@ typedef	struct {
 
 #define	MAXSEGS	16
 
-screenpost_t solidsegs[MAXSEGS], *newend;	/* newend is one past the last valid seg */
+static screenpost_t solidsegs[MAXSEGS], *newend;	/* newend is one past the last valid seg */
 
-void ClipWallSegment(Word top,Word bottom,saveseg_t *seg,Word distance)
+static void ClipWallSegment(Word top,Word bottom,saveseg_t __far* seg,Word distance)
 {
 	screenpost_t *next, *start;
 	
@@ -204,15 +215,16 @@ void ClearClipSegs(void)
 		
 **********************************/
 
-void P_DrawSeg (saveseg_t *seg)
+static void P_DrawSeg (saveseg_t __far* seg)
 {
 	Word	segplane;
 	Word	door;
 	door_t	*door_p;
 	unsigned short	span, tspan;
-	unsigned short	angle1, angle2;
+	unsigned short	angle1 = 0;
+	unsigned short  angle2 = 0;
 	int		texslide;
-	int		distance;
+	int		distance = 0;
 	
 	if (seg->dir & DIR_DISABLEDFLAG) {	/* Segment shut down? */
 		return;		/* pushwall part*/
@@ -341,13 +353,13 @@ void P_DrawSeg (saveseg_t *seg)
 		
 **********************************/
 
-Boolean CheckBSPNode(Word boxpos)
+static Boolean CheckBSPNode(Word boxpos)
 {
 	short 	angle1, angle2;
 	unsigned short	span, tspan;
 	unsigned short	uangle1, uangle2;
 	screenpost_t	*start;
-	Word *PosPtr;
+	const Word *PosPtr;
 	int x1,y1,x2,y2;
 	
 	PosPtr = &checkcoord[boxpos][0];
@@ -403,7 +415,7 @@ Boolean CheckBSPNode(Word boxpos)
 		
 **********************************/
 
-void TerminalNode (saveseg_t *seg)
+static void TerminalNode (saveseg_t __far* seg)
 {
 	for (;;) {				/* Forever? */
 		P_DrawSeg(seg);		/* Draw the wall segment (If visible) */
@@ -422,7 +434,7 @@ void TerminalNode (saveseg_t *seg)
 
 void RenderBSPNode(Word bspnum)
 {
-	savenode_t *bsp;	/* Pointer to the current BSP node */
+	savenode_t __far* bsp;	/* Pointer to the current BSP node */
 	Word side;			/* decision line */
 	Word coordinate;	/* Current coord */
 	Word savednum;		/* Save index */
@@ -431,7 +443,7 @@ void RenderBSPNode(Word bspnum)
 
 	bsp = &nodes[bspnum];		/* Get pointer to the current tree node */
 	if (bsp->dir & DIR_SEGFLAG) {		/* There is a segment here... */	
-		TerminalNode((saveseg_t *)bsp);	/* Render it */
+		TerminalNode((saveseg_t __far*)bsp);	/* Render it */
 		return;							/* Exit */
 	}
 	

@@ -1,11 +1,12 @@
-#include "wolfdef.h"
 #include <string.h>
+
+#include "wolfdef.h"
 
 /* static object info*/
 
 /* List of bad guy sprites */
 
-static Word DKnightSprs[] = {
+static const Word DKnightSprs[] = {
 S_DKNIGHT_ATK1,
 S_DKNIGHT_ATK2,
 S_DKNIGHT_ATK3,
@@ -18,7 +19,7 @@ S_DKNIGHT_DTH1,
 S_DKNIGHT_DTH2,
 S_DKNIGHT_DTH3,S_G_KEY,0};
 
-static Word DogSprs[] = {
+static const Word DogSprs[] = {
 S_DOG_ATK1,
 S_DOG_ATK2,
 S_DOG_ATK3,
@@ -30,7 +31,7 @@ S_DOG_DTH1,
 S_DOG_DTH2,
 S_DOG_DTH3,0};
 
-static Word NaziSprs[] = {
+static const Word NaziSprs[] = {
 S_GUARD_ATK1,
 S_GUARD_ATK2,
 S_GUARD_ATK3,
@@ -43,7 +44,7 @@ S_GUARD_DTH1,
 S_GUARD_DTH2,
 S_GUARD_DTH3,S_AMMO,0};
 
-static Word HansSprs[] = {
+static const Word HansSprs[] = {
 S_HANS_ATK1,
 S_HANS_ATK2,
 S_HANS_ATK3,
@@ -55,7 +56,7 @@ S_HANS_DTH1,
 S_HANS_DTH2,
 S_HANS_DTH3,S_G_KEY,0};
 
-static Word HitlerSprs[] = {
+static const Word HitlerSprs[] = {
 S_HITLER_ATK1,
 S_HITLER_ATK2,
 S_HITLER_ATK3,
@@ -78,7 +79,7 @@ S_MHITLER_WLK2,
 S_MHITLER_WLK3,
 S_MHITLER_WLK4,0};
 
-static Word UberSprs[] = {
+static const Word UberSprs[] = {
 S_UBER_ATK1,
 S_UBER_ATK2,
 S_UBER_ATK3,
@@ -91,7 +92,7 @@ S_UBER_DTH1,
 S_UBER_DTH2,
 S_UBER_DTH3,S_G_KEY,0};
 
-static Word MutantSprs[] = {
+static const Word MutantSprs[] = {
 S_MUTANT_ATK1,
 S_MUTANT_ATK2,
 S_MUTANT_ATK3,
@@ -104,7 +105,7 @@ S_MUTANT_DTH1,
 S_MUTANT_DTH2,
 S_MUTANT_DTH3,S_AMMO,0};
 
-static Word OfficerSprs[] = {
+static const Word OfficerSprs[] = {
 S_OFFICER_ATK1,
 S_OFFICER_ATK2,
 S_OFFICER_ATK3,
@@ -117,7 +118,7 @@ S_OFFICER_DTH1,
 S_OFFICER_DTH2,
 S_OFFICER_DTH3,S_AMMO,0};
 
-static Word SchabbsSpr[] = {
+static const Word SchabbsSpr[] = {
 S_SCHABBS_ATK1,
 S_SCHABBS_ATK2,
 S_SCHABBS_WLK1,
@@ -128,7 +129,7 @@ S_SCHABBS_DTH1,
 S_SCHABBS_DTH2,
 S_SCHABBS_DTH3,S_G_KEY,0};
 
-static Word SSSprs[] = {
+static const Word SSSprs[] = {
 S_SS_ATK1,
 S_SS_ATK2,
 S_SS_ATK3,
@@ -141,7 +142,7 @@ S_SS_DTH1,
 S_SS_DTH2,
 S_SS_DTH3,S_MACHINEGUN,S_AMMO,0};
 
-static Word TransSprs[] = {
+static const Word TransSprs[] = {
 S_TRANS_ATK1,
 S_TRANS_ATK2,
 S_TRANS_ATK3,
@@ -155,7 +156,7 @@ S_TRANS_DTH3,S_G_KEY,0};
 
 static Byte EnemyHits[16];
 
-static Word *EnemySprs[] = {	/* This list MUST match class_t! */
+static const Word *EnemySprs[] = {	/* This list MUST match class_t! */
 NaziSprs,
 OfficerSprs,
 SSSprs,
@@ -173,7 +174,7 @@ HitlerSprs
 
 static Byte WallHits[256];
 
-Word staticflags[] = {
+static const Word staticflags[] = {
 0,					/*S_WATER_PUDDLE,*/
 TI_BLOCKMOVE,		/*S_GREEN_BARREL,*/
 TI_BLOCKMOVE,		/*S_CHAIR_TABLE,*/
@@ -221,7 +222,7 @@ TI_GETABLE			/*S_MISSILES */
 
 **********************************/
 
-void SpawnStatic(Word x,Word y,Word shape)
+static void SpawnStatic(Word x,Word y,Word shape)
 {	
 	Word *TilePtr;
 	static_t *StatPtr;
@@ -256,7 +257,7 @@ void SpawnStatic(Word x,Word y,Word shape)
 
 **********************************/
 
-void SpawnPlayer(Word x,Word y,Word dir)
+static void SpawnPlayer(Word x,Word y,Word dir)
 {
 	gamestate.viewangle = (1-dir)*ANGLES/4;	/* Get the basic viewing angle */
 	actors[0].x = (x<<FRACBITS)+0x80;	/* Save the X coord */
@@ -273,10 +274,10 @@ void SpawnPlayer(Word x,Word y,Word dir)
 
 **********************************/
 
-void SpawnStand(Word x,Word y,class_t which)
+static void SpawnStand(Word x,Word y,class_t which)
 {
 	stateindex_t state;
-	classinfo_t	*info;
+	const classinfo_t	*info;
 	actor_t *ActorPtr;
 	Word *TilePtr;
 	Word tile;
@@ -320,7 +321,7 @@ void SpawnStand(Word x,Word y,class_t which)
 
 **********************************/
 
-void SpawnAmbush(Word x,Word y,class_t which)
+static void SpawnAmbush(Word x,Word y,class_t which)
 {
 	actor_t *ActorPtr;
 	
@@ -335,7 +336,7 @@ void SpawnAmbush(Word x,Word y,class_t which)
 
 **********************************/
 
-void SpawnDoor(Word x,Word y,Word type)
+static void SpawnDoor(Word x,Word y,Word type)
 {
 	door_t *door;
 	Word *TilePtr;
@@ -370,7 +371,7 @@ void SpawnDoor(Word x,Word y,Word type)
 
 **********************************/
 
-void AddPWallTrack(Word x,Word y,Word tile)
+static void AddPWallTrack(Word x,Word y,Word tile)
 {
 	Byte *TextPtr;
 	if (x>=MAPSIZE || y>=MAPSIZE) {
@@ -390,7 +391,7 @@ void AddPWallTrack(Word x,Word y,Word tile)
 
 **********************************/
 
-void SpawnPushwall(Word x,Word y,Word tile)
+static void SpawnPushwall(Word x,Word y,Word tile)
 {
 	++gamestate.secrettotal;		/* Secret area! */
 	tilemap[y][x] |= (TI_BLOCKMOVE | TI_BLOCKSIGHT | TI_PUSHWALL);
@@ -413,10 +414,8 @@ void SpawnPushwall(Word x,Word y,Word tile)
 
 **********************************/
 
-void SpawnElevator(Word x,Word y)
+static void SpawnElevator(Word x,Word y)
 {
-	elevatorx = x;	/* for easy mode cheating*/
-	elevatory = y;
 	tilemap[y][x] |= TI_BLOCKMOVE | TI_SWITCH;
 }
 
@@ -426,8 +425,10 @@ void SpawnElevator(Word x,Word y)
 
 **********************************/
 
-void SpawnOut(Word x,Word y)
+static void SpawnOut(Word x,Word y)
 {
+	UNUSED(x);
+	UNUSED(y);
 	/*tilemap[y][x] |= TI_BLOCKMOVE | TI_SWITCH;*/
 }
 
@@ -437,7 +438,7 @@ void SpawnOut(Word x,Word y)
 
 **********************************/
 
-void SpawnSecret(Word x,Word y)
+static void SpawnSecret(Word x,Word y)
 {
 	tilemap[y][x] |= TI_BLOCKMOVE | TI_SECRET;
 }
@@ -449,16 +450,16 @@ void SpawnSecret(Word x,Word y)
 	
 **********************************/
 
-void SpawnThings(void)
+static void SpawnThings(void)
 {
 	Word x,y;		/* Temp x,y */
 	Word type;		/* Item to spawn */
-	Byte *spawn_p;
+	Byte __far* spawn_p;
 	Word Count;		/* Number of items to create */
-	Word *EnemyPtr;
+	const Word *EnemyPtr;
 	
 	memset(EnemyHits,0,sizeof(EnemyHits));
-	spawn_p = (Byte *)MapPtr+MapPtr->spawnlistofs;	/* Point to the spawn table */
+	spawn_p = (Byte __far*)MapPtr+MapPtr->spawnlistofs;	/* Point to the spawn table */
 	Count = MapPtr->numspawn;		/* How many items to spawn? */
 	if (!Count) {
 		return;
@@ -519,22 +520,22 @@ void SpawnThings(void)
 void ReleaseMap(void)
 {
 	Word i;
-	if (OldMapNum) {
-		KillAResource(OldMapNum);	/* Make SURE it's purged! */
-		OldMapNum = 0;			/* Nothing loaded */
-		MapPtr = 0;				/* No data available */
+
+	if (MapPtr) {
+		Z_Free(MapPtr);	/* Make SURE it's purged! */
+		MapPtr = NULL;				/* No data available */
 	}
+
 	i = 0;
 	do {
 		if (ArtData[i]) {
-			FreeSomeMem(ArtData[i]);	/* Release the wall art */
 			ArtData[i] = 0;
 		}
 	} while (++i<64);				/* All walls done? */
+
 	i = 1;
 	do {
 		if (SpriteArray[i]) {			/* Is this sprite loaded? */
-			FreeSomeMem(SpriteArray[i]);	/* Release the memory */
 			SpriteArray[i] = 0;
 		}
 	} while (++i<S_LASTONE);			/* All done? */
@@ -549,9 +550,12 @@ void ReleaseMap(void)
 	
 **********************************/
 
-Boolean SetupGameLevel(void)
+static void LoadWallArt(void);
+static void LoadSpriteArt(void);
+
+void SetupGameLevel(void)
 {
-	Byte *src;
+	Byte __far* src;
 	Word *dest;
 	Word tile;
 	Word Count;
@@ -568,11 +572,8 @@ Boolean SetupGameLevel(void)
 /* Load a level */
 
 	ReleaseMap();				/* Free up any previous map */
-	OldMapNum = (MapListPtr->MapRezNum)+gamestate.mapon;	/* Which map to load */
-	MapPtr = LoadAResource(OldMapNum);	/* Load in the map */
-	if (!MapPtr) {
-		return FALSE;		/* Uh.. yeah... */
-	}
+	MapPtr = W_GetLumpByNum(MapListPtr->MapRezNum+gamestate.mapon);	/* Load in the map */
+
 	DrawPsyched(1);		/* First stage done */
 #ifdef __BIGENDIAN__
 	MapPtr->numspawn = SwapUShort(MapPtr->numspawn);	/* Fix for 68000 machines */
@@ -605,9 +606,8 @@ Boolean SetupGameLevel(void)
 
 	NewMap();		/* Set the variables */
 	DrawPsyched(2);	/* Second stage */
-	if (!LoadWallArt()) {	/* Get the wall shapes */
-		return FALSE;
-	}
+	LoadWallArt();	/* Get the wall shapes */
+
 /* map.tilemap is now used to hold actor numbers if the TI_ACTOR bit is set in 
 	the word tilemap*/
 	
@@ -617,7 +617,7 @@ Boolean SetupGameLevel(void)
 		WallHits[Count] = 1;	/* Force the permanent sprites to load */
 	} while (++Count<S_VICTORY+1);
 	SpawnThings();	/* Create all the characters in the game level */
-	return LoadSpriteArt();	/* Load in the sprite art */
+	LoadSpriteArt();	/* Load in the sprite art */
 }
 
 /************************************
@@ -626,33 +626,10 @@ Boolean SetupGameLevel(void)
 
 ************************************/
 
-static Boolean LoadWallShape(Word Index,Byte *DarkPtr)
+static void LoadWallShape(Word Index)
 {
-	Byte *WallPtr;
-	Byte *Buffer;
-	Word WallVal;
-	Word j;
-	
-	Buffer = AllocSomeMem(0x4000);		/* Get memory for wall */
-	if (!Buffer) {
-		return FALSE;
-	}
-	WallVal = WallListPtr[Index+1];		/* Which resource is it? */
-	WallPtr = LoadAResource(WallVal&0x3fff);	/* Load the shape */
-	if (!WallPtr) {
-		FreeSomeMem(Buffer);
-		return FALSE;
-	}
-	DLZSS(Buffer,WallPtr,0x4000);	/* Decompress it */
-	if (WallVal & 0x8000) {		/* Do I need to darken it? */
-		j = 0;
-		do {
-			Buffer[j] = DarkPtr[Buffer[j]];	/* Use a lookup table to darken it */
-		} while (++j<0x4000);
-	}
-	ArtData[Index] = Buffer;			/* Save the pointer */
-	ReleaseAResource(WallVal&0x3fff);	/* Purge the data */
-	return TRUE;
+	Word WallVal   = WallListPtr[Index+1];		/* Which resource is it? */
+	ArtData[Index] = WallVal&0x3fff;			/* Save the resource number */
 }
 
 /************************************
@@ -661,37 +638,24 @@ static Boolean LoadWallShape(Word Index,Byte *DarkPtr)
 
 ************************************/
 
-Word LoadWallArt(void)
+static void LoadWallArt(void)
 {
 	Word i;
-	Word j;
-	Word RetVal;
-	Byte *DarkPtr;
-	
-	RetVal = FALSE;
-	DarkPtr = LoadAResource(MyDarkData);		/* Get my darken table */
+
 	i = 0;
 	do {
 		if (WallHits[i]) {
-			j = i*2;
-			if (!LoadWallShape(j,DarkPtr) ||
-				!LoadWallShape(j+1,DarkPtr) ) {
-				goto Abort;
-			}
-			DrawPsyched(j+2);
+			LoadWallShape(i*2);
+			LoadWallShape(i*2+1);
+			DrawPsyched(i*2+2);
 		} 
 	} while (++i<29);
+
 	i = 59;
 	do {
-		if (!LoadWallShape(i,DarkPtr)) {
-			goto Abort;
-		}
+		LoadWallShape(i);
 		DrawPsyched(i+2);
 	} while (++i<64);
-	RetVal = TRUE;
-Abort:
-	ReleaseAResource(MyDarkData);
-	return RetVal;			/* No errors */
 }
 
 /***************************
@@ -700,33 +664,16 @@ Abort:
 
 ***************************/
 
-Word LoadSpriteArt(void)
+static void LoadSpriteArt(void)
 {
 	Word i;
-	Word Length;
-	Byte *MyPtr;
-	Byte *MyNewPtr;
 	
 	i=1;
 	do {
 		if (WallHits[i]) {
-			MyPtr = LoadAResource(i+(428-1));	/* Get the packed file */
-			if (!MyPtr) {
-				return FALSE;
-			}
-			Length = MyPtr[0];				/* Get the length unpacked */
-			Length |= MyPtr[1]<<8;
-			MyNewPtr = (Byte *)AllocSomeMem(Length);		/* Get memory for the sprite */
-			if (!MyNewPtr) {
-				ReleaseAResource(i+(428-1));	
-				return FALSE;
-			}
-			DLZSS(MyNewPtr,&MyPtr[2],Length);	/* Unpack it */
-			SpriteArray[i] = MyNewPtr;		/* Save the pointer */
-			ReleaseAResource(i+(428-1));		/* Release the resource */
+			SpriteArray[i] = i + (428 - 1);		/* Save the resource number */
 			DrawPsyched(i+66);
 		}
 	} while (++i<S_LASTONE);
 	DrawPsyched(66+S_LASTONE);
-	return TRUE;
 }

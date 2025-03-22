@@ -14,6 +14,8 @@ void TakeDamage(Word points,Word x,Word y)
 	if (gamestate.godmode) {					/* Don't do anything else if a god */
 		return;
 	}
+
+	StartDamageFlash(points);
 		
 	if (gamestate.health <= points) {	/* Died? */
 		playstate = EX_DIED;		/* Kill off the player */
@@ -47,7 +49,7 @@ void TakeDamage(Word points,Word x,Word y)
 		faceframe += 5;			/* use beat up frames*/
 	}
 	IO_DrawFace(faceframe);		/* Draw the face */
-	facecount = 120;				/* Hold for 2 seconds */
+	facecount = 2 * TICRATE;				/* Hold for 2 seconds */
 }
 
 /**********************************
@@ -56,7 +58,7 @@ void TakeDamage(Word points,Word x,Word y)
 		
 **********************************/
 
-void HealSelf(Word points)
+static void HealSelf(Word points)
 {
 	gamestate.health += points;		/* Add in the health */
 	if (gamestate.health>100) {
@@ -77,7 +79,7 @@ void HealSelf(Word points)
 		
 **********************************/
 
-void GiveExtraMan(void)
+static void GiveExtraMan(void)
 {
 	if (gamestate.lives<10) {		/* Too many already? */
 		++gamestate.lives;			/* +1 life */
@@ -110,7 +112,7 @@ void GivePoints(LongWord points)
 		
 **********************************/
 
-void GiveTreasure(void)
+static void GiveTreasure(void)
 {
 	++gamestate.treasure;		/* Add the value of the treasure */
 	while (gamestate.treasure >= 50) {
@@ -127,7 +129,7 @@ void GiveTreasure(void)
 		
 **********************************/
 
-void GiveWeapon(weapontype weapon)
+static void GiveWeapon(weapontype weapon)
 {
 	if (gamestate.pendingweapon < weapon) {	/* Better? */
 		gamestate.pendingweapon = weapon;	/* Use it! */
@@ -162,6 +164,10 @@ void GiveAmmo(Word ammo)
 				gamestate.pendingweapon = WP_CHAINGUN;
 			}
 		}
+		break;
+	case WP_FLAMETHROWER:
+	case WP_MISSILE:
+		break;
 	}
 }
 
@@ -217,7 +223,7 @@ void GiveKey(Word key)
 		
 **********************************/
 
-void BonusSound(void)
+static void BonusSound(void)
 {
 	PlaySound(SND_BONUS);
 }
@@ -228,7 +234,7 @@ void BonusSound(void)
 		
 **********************************/
 
-void WeaponSound(void)
+static void WeaponSound(void)
 {
 	PlaySound(SND_GETAMMO|0x8000);
 }
@@ -239,7 +245,7 @@ void WeaponSound(void)
 		
 **********************************/
 
-void HealthSound(void)
+static void HealthSound(void)
 {
 	PlaySound(SND_HEAL|0x8000);
 }
@@ -250,7 +256,7 @@ void HealthSound(void)
 		
 **********************************/
 
-void KeySound(void)
+static void KeySound(void)
 {
 	PlaySound(SND_GETKEY);
 }
@@ -364,7 +370,7 @@ void GetBonus(Word x,Word y)
 IAmSoHappy:
 			PlaySound(SND_THUMBSUP);			/* Got a gun! */
 			IO_DrawFace(4);			/* Make a happy face! */
-			facecount = 120;			/* Hold for 2 seconds */
+			facecount = 2 * TICRATE;			/* Hold for 2 seconds */
 			break;
 	
 		case S_FLAMETHROWER:
@@ -431,6 +437,9 @@ NextOne:
 SkipInc:;
 	} while (--Count);
 
+	if (got) {
+		StartBonusFlash();
+	}
 	if (touched == got) {	/* All items taken? */
 EndNow:						
 		tilemap[y][x] &= ~TI_GETABLE;		/* No more getable items */

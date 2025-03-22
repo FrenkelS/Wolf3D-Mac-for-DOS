@@ -1,7 +1,13 @@
-#include "WolfDef.h"
 #include <string.h>
 
-Word *src1,*src2,*dest;		/* Used by the sort */
+#include "WolfDef.h"
+
+
+static Word xevents[MAXVISSPRITES]; /* Scale events for sprite sort */
+static Word sortbuffer[MAXVISSPRITES];	/* mergesort requires an extra buffer*/
+
+
+static Word *src1,*src2,*dest;		/* Used by the sort */
 
 /**********************************
 	
@@ -10,7 +16,7 @@ Word *src1,*src2,*dest;		/* Used by the sort */
 	
 **********************************/
 
-void Merge(Word Size1, Word Size2)
+static void Merge(Word Size1, Word Size2)
 {
 	Word *XDest,*XSrc1,*XSrc2;
 	
@@ -62,7 +68,7 @@ mergefrom1:
 	
 **********************************/
 
-void SortEvents(void)
+static void SortEvents(void)
 {
 	Word	count;	/* Number of members to sort */
 	Word	size;	/* Entry size to sort with */
@@ -123,7 +129,7 @@ void SortEvents(void)
 	
 **********************************/
 
-void RenderSprite(Word x1,Word x2,vissprite_t *VisPtr)
+static void RenderSprite(Word x1,Word x2,vissprite_t *VisPtr)
 {
 	Word column;
 	Word scaler;
@@ -138,7 +144,7 @@ void RenderSprite(Word x1,Word x2,vissprite_t *VisPtr)
 
 	do {
 		if (xscale[x1] <= scaler) {	/* Visible? */
-			IO_ScaleMaskedColumn(x1,scaler,VisPtr->pos,column>>FRACBITS);
+			IO_ScaleMaskedColumn(x1,scaler,VisPtr->lumpNum,column>>FRACBITS);
 		}
 		column+=VisPtr->columnstep;		/* Next column (Fraction) */
 	} while (++x1<=x2);
@@ -150,13 +156,13 @@ void RenderSprite(Word x1,Word x2,vissprite_t *VisPtr)
 	
 **********************************/
 
-void AddSprite (thing_t *thing,Word actornum)
+static void AddSprite (thing_t *thing,Word actornum)
 {
 	fixed_t tx;			/* New X coord */
 	fixed_t tz;			/* New z coord (Size) */
 	Word scale;			/* Scaled size */
 	int	px;				/* Center X coord */
-	unsigned short *patch;	/* Pointer to sprite data */
+	unsigned short __far* patch;	/* Pointer to sprite data */
 	int	x1, x2;			/* Left,Right x */
 	Word width;			/* Width of sprite */
 	fixed_t trx,try;	/* x,y from the camera */
@@ -180,32 +186,35 @@ void AddSprite (thing_t *thing,Word actornum)
 	}
 	scale = scaleatzptr[tz];	/* Get the scale at the z coord */
 	tx = R_TransformX(trx,try);	/* Get the screen x coord */
-	px = ((tx*(long)scale)>>7) + CENTERX;	/* Use 32 bit precision! */
+	px = ((tx*(long)(scale>>detailshift))>>7) + centerx;	/* Use 32 bit precision! */
 
 /* calculate edges of the shape */
 
-	patch = SpriteArray[thing->sprite];	/* Pointer to the sprite info */
+	patch = W_GetLumpByNum(SpriteArray[thing->sprite]);	/* Pointer to the sprite info */
 	
-	width =((LongWord)patch[0]*scale)>>6; 	/* Get the width of the shape */
+	width =((LongWord)patch[0]*(scale>>detailshift))>>6; 	/* Get the width of the shape */
 	if (!width) {
+		Z_ChangeTagToCache(patch);
 		return;		/* too far away*/
 	}
 	x1 = px - (width>>1);	/* Get the left edge */
-	if (x1 >= (int) SCREENWIDTH) {
+	if (x1 >= (int) viewwidth) {
+		Z_ChangeTagToCache(patch);
 		return;		/* off the right side */
 	}
 	x2 = x1 + width - 1;			/* Get the right edge */
 	if (x2 < 0) {
+		Z_ChangeTagToCache(patch);
 		return;		/* off the left side*/
 	}
 	VisPtr = &vissprites[numvisspr];
-	VisPtr->pos = &patch[0];	/* Sprite info offset */
+	VisPtr->lumpNum = SpriteArray[thing->sprite];	/* Sprite info offset */
 	VisPtr->x1 = x1;			/* Min x */
 	VisPtr->x2 = x2;			/* Max x */
 	VisPtr->clipscale = scale;	/* Size to draw */
 	VisPtr->columnstep = (patch[0]<<8)/width; /* Step for width scale */
 	VisPtr->actornum = actornum;	/* Actor who this is (0 for static) */
-
+	Z_ChangeTagToCache(patch);
 /* pack the vissprite number into the low 6 bits of the scale for sorting */
 
 	xevents[numvisspr] = (scale<<6) | numvisspr;		/* Pass the scale in the upper 10 bits */
@@ -220,7 +229,7 @@ void AddSprite (thing_t *thing,Word actornum)
 
 void DrawTopSprite(void)
 {
-	unsigned short *patch;
+	unsigned short __far* patch;
 	int x1, x2;
 	Word width;
 	vissprite_t VisRecord;
@@ -229,25 +238,30 @@ void DrawTopSprite(void)
 
 /* calculate edges of the shape */
 
-		patch = SpriteArray[topspritenum];		/* Get the info on the shape */
+		patch = W_GetLumpByNum(SpriteArray[topspritenum]);		/* Get the info on the shape */
 		
-		width = (patch[0]*topspritescale)>>7;		/* Adjust the width */
+		width = ((LongWord)patch[0]*topspritescale*viewwidth/SCREENWIDTH)>>7;		/* Adjust the width */
 		if (!width) {	
+			Z_ChangeTagToCache(patch);
 			return;		/* Too far away */
 		}
-		x1 = CENTERX - (width>>1);		/* Use the center to get the left edge */
-		if (x1 >= SCREENWIDTH) {		
+		x1 = centerx - (width>>1);		/* Use the center to get the left edge */
+		if (x1 >= viewwidth) {
+			Z_ChangeTagToCache(patch);
 			return;		/* off the right side*/
 		}
 		x2 = x1 + width - 1;		/* Get the right edge */
 		if (x2 < 0) {
+			Z_ChangeTagToCache(patch);
 			return;		/* off the left side*/
 		}
-		VisRecord.pos = patch;	/* Index to the shape record */
+		VisRecord.lumpNum = SpriteArray[topspritenum];	/* Index to the shape record */
 		VisRecord.x1 = x1;			/* Left edge */
 		VisRecord.x2 = x2;			/* Right edge */
-		VisRecord.clipscale = topspritescale;	/* Size */
+		VisRecord.clipscale = topspritescale * viewheight / MAXVIEWHEIGHT;	/* Size */
 		VisRecord.columnstep = (patch[0]<<8)/(x2-x1+1);	/* Width step */
+
+		Z_ChangeTagToCache(patch);
 
 /* Make sure it is sorted to be drawn last */
 
@@ -255,8 +269,8 @@ void DrawTopSprite(void)
 		if (x1<0) {
 			x1 = 0;		/* Clip the left */
 		}
-		if (x2>=SCREENWIDTH) {
-			x2 = SCREENWIDTH-1;	/* Clip the right */
+		if (x2>=viewwidth) {
+			x2 = viewwidth-1;	/* Clip the right */
 		}
 		RenderSprite(x1,x2,&VisRecord);		/* Draw the sprite */
 	}
@@ -332,8 +346,8 @@ void DrawSprites(void)
 				x1 = 0;
 			}
 			x2 = dseg->x2;
-			if (x2>= (int)SCREENWIDTH) {	/* Clip the right? */
-				x2 = SCREENWIDTH-1;
+			if (x2>= (int)viewwidth) {	/* Clip the right? */
+				x2 = viewwidth-1;
 			}
 			RenderSprite(x1,x2,dseg);	/* Draw the sprite */
 			++xe;

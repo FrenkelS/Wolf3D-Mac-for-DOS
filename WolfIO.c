@@ -1,5 +1,10 @@
-#include "WolfDef.h"
 #include <string.h>
+
+#include "WolfDef.h"
+
+
+static Boolean refreshStatusBar;
+
 
 /**********************************
 
@@ -8,7 +13,7 @@
 	
 **********************************/
 
-LongWord pow10[] = {1,10,100,1000,10000,100000,1000000};
+static LongWord W_pow10[] = {1,10,100,1000,10000,100000,1000000};
 Word NumberIndex = 36;		/* First number in the shape list... */
 
 void SetNumber(LongWord number,Word x,Word y,Word digits)
@@ -20,16 +25,16 @@ void SetNumber(LongWord number,Word x,Word y,Word digits)
     empty = 1;			/* No char's drawn yet */
     while (digits) {	/* Any digits left? */
          count = 0;		/* No value yet */
-         val = pow10[digits-1];	/* Get the power of 10 */
+         val = W_pow10[digits-1];	/* Get the power of 10 */
          while (number >= val) {	/* Any value here? */
              count++;		/* +1 to the count */
              number -= val;		/* Remove the value */
          }
          if (empty && !count && digits!=1) {    /* pad on left with blanks rather than 0 */
-              DrawShape(x,y,GameShapes[NumberIndex]);
+              DrawShapeNum(x,y,NumberIndex);
          } else {
               empty = 0;		/* I have drawn... */
-              DrawShape(x,y,GameShapes[count+NumberIndex]);	/* Draw the digit */
+              DrawShapeNum(x,y,count+NumberIndex);	/* Draw the digit */
          }
          x+=ScaleX(8);
          digits--;		/* Count down */
@@ -60,15 +65,25 @@ void IO_CheckInput(void)
          buttonstate[bt_north] = 1;
     if (joystick1 & JOYPAD_DN)
          buttonstate[bt_south] = 1;
-    if (joystick1 & JOYPAD_LFT)
-         buttonstate[bt_west] = 1;
-    if (joystick1 & JOYPAD_RGT)
-         buttonstate[bt_east] = 1;
+
+    if (strafe) {
+        if (joystick1 & JOYPAD_LFT)
+             buttonstate[bt_left] = 1;
+        if (joystick1 & JOYPAD_RGT)
+             buttonstate[bt_right] = 1;
+    }
+    else {
+        if (joystick1 & JOYPAD_LFT)
+             buttonstate[bt_west] = 1;
+        if (joystick1 & JOYPAD_RGT)
+             buttonstate[bt_east] = 1;
+    }
+
     if (joystick1 & JOYPAD_TL)
          buttonstate[bt_left] = 1;
     if (joystick1 & JOYPAD_TR)
          buttonstate[bt_right] = 1;
-    if (joystick1 & JOYPAD_B)
+    if ((joystick1 & JOYPAD_B) || mousebutton)
          buttonstate[bt_attack] = 1;
     if (joystick1 & (JOYPAD_Y|JOYPAD_X) )
          buttonstate[bt_run] = 1;
@@ -87,8 +102,9 @@ void IO_CheckInput(void)
 
 void IO_DrawFloor(Word floor)
 {
-    SetNumber(MapListPtr->InfoArray[floor].ScenarioNum,ScaleX(8),ScaleY(176),1);
-    SetNumber(MapListPtr->InfoArray[floor].FloorNum,ScaleX(32),ScaleY(176),1);
+    SetNumber(MapListPtr->InfoArray[floor].ScenarioNum,ScaleX(8), ScaleY(MAXVIEWHEIGHT + 16),1);
+    SetNumber(MapListPtr->InfoArray[floor].FloorNum,   ScaleX(32),ScaleY(MAXVIEWHEIGHT + 16),1);
+    refreshStatusBar = TRUE;
 }
 
 /**********************************
@@ -100,7 +116,8 @@ void IO_DrawFloor(Word floor)
 void IO_DrawScore(LongWord score)
 {
 	if (!IntermissionHack) {			/* Don't draw during intermission! */
-    	SetNumber(score,ScaleX(56),ScaleY(176),7);
+    	SetNumber(score,ScaleX(56),ScaleY(MAXVIEWHEIGHT + 16),7);
+    	refreshStatusBar = TRUE;
     }
 }
 
@@ -118,7 +135,8 @@ void IO_DrawLives(Word lives)
     	if (lives > 9) {
     		lives = 9;		/* Failsafe */
 		}
-		SetNumber(lives,ScaleX(188),ScaleY(176),1);		/* Draw the lives count */
+		SetNumber(lives,ScaleX(188),ScaleY(MAXVIEWHEIGHT + 16),1);		/* Draw the lives count */
+		refreshStatusBar = TRUE;
 	}
 }
 
@@ -130,7 +148,8 @@ void IO_DrawLives(Word lives)
 
 void IO_DrawHealth(Word health)
 {
-    SetNumber(health,ScaleX(210),ScaleY(176),3);
+    SetNumber(health,ScaleX(210),ScaleY(MAXVIEWHEIGHT + 16),3);
+    refreshStatusBar = TRUE;
 }
 
 /**********************************
@@ -141,7 +160,8 @@ void IO_DrawHealth(Word health)
 
 void IO_DrawAmmo(Word ammo)
 {
-    SetNumber(ammo,ScaleX(268),ScaleY(176),3);
+    SetNumber(ammo,ScaleX(268),ScaleY(MAXVIEWHEIGHT + 16),3);
+    refreshStatusBar = TRUE;
 }
 
 /**********************************
@@ -152,7 +172,8 @@ void IO_DrawAmmo(Word ammo)
 
 void IO_DrawTreasure(Word treasure)
 {
-    SetNumber(treasure,ScaleX(128),ScaleY(176),2);
+    SetNumber(treasure,ScaleX(128),ScaleY(MAXVIEWHEIGHT + 16),2);
+    refreshStatusBar = TRUE;
 }
 
 /**********************************
@@ -164,10 +185,12 @@ void IO_DrawTreasure(Word treasure)
 void IO_DrawKeys(Word keys)
 {
     if (keys&1) {
-         DrawShape(ScaleX(310),ScaleY(164),GameShapes[10]);
+         DrawShapeNum(ScaleX(310),ScaleY(MAXVIEWHEIGHT + 4),10);
+         refreshStatusBar = TRUE;
     }
     if (keys&2) {
-    	DrawShape(ScaleX(310),ScaleY(184),GameShapes[11]);
+    	DrawShapeNum(ScaleX(310),ScaleY(MAXVIEWHEIGHT + 24),11);
+    	refreshStatusBar = TRUE;
     }
 }
 
@@ -179,7 +202,7 @@ void IO_DrawKeys(Word keys)
 
 void IO_AttackShape(Word shape)
 {
-	DrawXMShape(ScaleX(128),ScaleY(96),GameShapes[shape+12]);
+	DrawXMShapeNum((scaledviewwidth / 2) - 32, viewheight - 64, shape + 12);
 }
 
 /**********************************
@@ -190,7 +213,8 @@ void IO_AttackShape(Word shape)
 
 void IO_DrawFace(Word face)
 {
-	DrawShape(ScaleX(160),ScaleY(164),GameShapes[face]);		/* Draw the face */
+	DrawShapeNum(ScaleX(160),ScaleY(MAXVIEWHEIGHT + 4),face);		/* Draw the face */
+	refreshStatusBar = TRUE;
 }
 
 /**********************************
@@ -201,48 +225,8 @@ void IO_DrawFace(Word face)
 
 void IO_DrawStatusBar(void)
 {
-	DrawShape(ScaleX(0),ScaleY(160),GameShapes[46]);
+	DrawShapeNum(ScaleX(0),ScaleY(MAXVIEWHEIGHT),46);
 }
-
-/**********************************
-
-	Erase the floor and ceiling
-	
-**********************************/
-
-#ifndef __APPLEIIGS__		/* Done in assembly on the IIgs version */
-#ifndef __3DO__
-void IO_ClearViewBuffer(void)
-{
-	unsigned char *Screenad;
-	Word Count,WCount;
-	LongWord *LScreenad;
-	LongWord Fill;
-
-	Screenad = VideoPointer;
-	Count = VIEWHEIGHT/2;
-	Fill = 0x2f2f2f2f;
-	do {
-		WCount = SCREENWIDTH/4;
-		LScreenad = (LongWord *) Screenad;
-		do {
-			*LScreenad++ = Fill;	/* 004 */
-		} while (--WCount);
-		Screenad+=VideoWidth;
-	} while (--Count);
-	Count = VIEWHEIGHT/2;
-	Fill = 0x2A2A2A2A;
-	do {
-		WCount = SCREENWIDTH/4;
-		LScreenad = (LongWord *) Screenad;
-		do {
-			*LScreenad++ = Fill;
-		} while (--WCount);
-		Screenad+=VideoWidth;
-	} while (--Count);
-}
-#endif
-#endif
 
 /**********************************
 
@@ -252,10 +236,16 @@ void IO_ClearViewBuffer(void)
 
 void IO_DisplayViewBuffer (void)
 {
-	BlastScreen();
+	BlastView();
+
+	if (refreshStatusBar) {
+		refreshStatusBar = FALSE;
+		BlastStatusBar();
+	}
+
 /* if this is the first frame rendered, upload everything and fade in */
     if (firstframe) { 
 		FadeTo(rGamePal);
-		firstframe = 0;
+		firstframe = FALSE;
     }
 }

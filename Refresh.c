@@ -1,13 +1,21 @@
-#include "WolfDef.h"
-#include <string.h>
 #include <math.h>
+#include <string.h>
+
+#include "WolfDef.h"
 
 #define	DOORPIC	59
 
 /* Scale ranges from 0xffff (one tile == 512 pixels high) down to 0x100 (one tile == 2 pixels) */
 
-savenode_t *nodes;
-saveseg_t *pwallseg;				/* pushwall in motion*/
+savenode_t __far* nodes;
+saveseg_t __far* pwallseg;				/* pushwall in motion*/
+
+
+static fixed_t	viewsin;					/* Base sine for viewing angle */
+static fixed_t viewcos;					/* Base cosine for viewing angle */
+
+static Word MathSize = -1;		/* The current size of the math tables */
+
 
 /*
 ================================================
@@ -104,8 +112,12 @@ Word ScaleFromGlobalAngle(int visangle,int distance)
 void DrawAutomap(Word tx,Word ty)
 {
 	Word i, tile;
-	saveseg_t *seg;
-	Word x,y,xstep,ystep,count;
+	saveseg_t __far* seg;
+	Word x = 0;
+	Word y = 0;
+	Word xstep = 0;
+	Word ystep = 0;
+	Word count;
 	Word min,max;
 	Word maxtx, maxty;
 	Word NodeCount;
@@ -113,7 +125,7 @@ void DrawAutomap(Word tx,Word ty)
 	NodeCount = MapPtr->numnodes;
 	maxtx = tx+(SCREENWIDTH/16);
 	maxty = ty+(SCREENHEIGHT/16);
-	seg = (saveseg_t *)nodes;
+	seg = (saveseg_t __far*)nodes;
 	i = 0;
 	do {
 		if ( (seg->dir & (DIR_SEGFLAG|DIR_SEENFLAG)) == (DIR_SEGFLAG|DIR_SEENFLAG) ) {
@@ -186,44 +198,42 @@ void DrawAutomap(Word tx,Word ty)
 	
 **********************************/
 
-#define	PI	3.141592657
+#define	projectionscale	(scaledviewwidth/2)*0x90l
+#define	W_PI	3.141592657
 
-Boolean StartupRendering(Word NewSize)
+void StartupRendering(void)
 {
-#ifdef __MAC__
 	int		i;
 	Word minz;
 	int		x;
+#if 0
 	float	a, fv;
+#endif
 	long	t;
 	LongWord focallength;
 	Word j;
-	Word *ScalePtr;
-#endif
 
-	if (NewSize == MathSize) {	/* Already loaded? */
-		return TRUE;
+	if (viewwidth == MathSize) {	/* Already loaded? */
+		return;
 	}
 	
-#ifdef __MAC__		/* Only the mac version will calculate the tables */
-
 /* generate scaleatz*/
 
-	ScalePtr = scaleatzptr;
-	minz = PROJECTIONSCALE/MAXFRAC;		/* What's the largest index */		
+	minz = projectionscale/MAXFRAC;		/* What's the largest index */
 	for (j=0;j<=minz;j++) {				
-		ScalePtr[j] = MAXFRAC;		/* Fill in the overflow area (No longs) */
+		scaleatzptr[j] = MAXFRAC;		/* Fill in the overflow area (No longs) */
 	}
 	do {					/* Calculate the rest */
-		ScalePtr[j] = PROJECTIONSCALE/j;	/* Create whole numbers */
+		scaleatzptr[j] = projectionscale/j;	/* Create whole numbers */
 	} while (++j<MAXZ);
 
+#if 0
 /* viewangle tangent table*/
 
 	if (MathSize==-1) {		/* Only needs to be done once */
 		i = 0;
 		do {
-			a = (i-FINEANGLES/4+0.1)*PI*2/FINEANGLES;
+			a = (i-FINEANGLES/4+0.1)*W_PI*2/FINEANGLES;
 			fv = 256*tan(a);
 			if (fv>0x7fff) {
 				t = 0x7fff;
@@ -239,7 +249,7 @@ Boolean StartupRendering(Word NewSize)
 		
 		i = 0;
 		do {
-			a = (i+0.0)*PI*2/FINEANGLES;
+			a = (i+0.0)*W_PI*2/FINEANGLES;
 			t = 256*sin(a);
 			if (t>255) {
 				t = 255;
@@ -250,20 +260,21 @@ Boolean StartupRendering(Word NewSize)
 			finesine[i] = t;
 		} while (++i<FINEANGLES/2);
 	}
+#endif
 
 /* use tangent table to generate viewangletox*/
 
-	/* calc focallength so FIELDOFVIEW angles covers SCREENWIDTH */
+	/* calc focallength so FIELDOFVIEW angles covers viewwidth */
 
-	focallength = (SCREENWIDTH/2)<<FRACBITS/finetangent[FINEANGLES/4+FIELDOFVIEW/2];
+	focallength = (viewwidth/2)<<FRACBITS/finetangent[FINEANGLES/4+FIELDOFVIEW/2];
 	i = 0;
 	do {
 		t = ((long) finetangent[i]*(long)focallength)>>FRACBITS;
-		t = (int)SCREENWIDTH/2 - t;
+		t = (int)viewwidth/2 - t;
 		if (t < -1) {
 			t = -1;
-		} else if (t>(int)SCREENWIDTH+1) {
-			t = SCREENWIDTH+1;
+		} else if (t>(int)viewwidth+1) {
+			t = viewwidth+1;
 		}
 		viewangletox[i] = t;
 	} while (++i<FINEANGLES/2);
@@ -277,40 +288,38 @@ Boolean StartupRendering(Word NewSize)
 			i++;
 		}
 		xtoviewangle[x] = i-FINEANGLES/4-1;
-	} while (++x<=SCREENWIDTH);
+	} while (++x<=viewwidth);
 
 /* take out the fencepost cases from viewangletox*/
 
 	for (i=0 ; i<FINEANGLES/2 ; i++) {
-		t = SUFixedMul (finetangent[i], focallength);
-		t = (int)SCREENWIDTH/2 - t;
 		if (viewangletox[i] == -1) {
 			viewangletox[i] = 0;
-		} else if (viewangletox[i] == SCREENWIDTH+1) {
-			viewangletox[i] = SCREENWIDTH;
+		} else if (viewangletox[i] == viewwidth+1) {
+			viewangletox[i] = viewwidth;
 		}
 	}
-	
+
 #if 0		/* Should I save these tables? */
-if (!NewSize) {
+if (viewwidth != MathSize) {
 SaveJunk(scaleatzptr,sizeof(Word)*MAXZ);
 SaveJunk(finetangent,sizeof(short)*FINEANGLES/2);
 SaveJunk(finesine,sizeof(short)*FINEANGLES/2);
 SaveJunk(viewangletox,sizeof(short)*FINEANGLES/2);
-SaveJunk(xtoviewangle,sizeof(short)*(SCREENWIDTH+1));
+SaveJunk(xtoviewangle,sizeof(short)*(viewwidth+1));
 GoodBye();
 }
 #endif
 	
-#else
+#if 0
 /* All other versions load the tables from disk (MUCH FASTER!!) */
 	if (MathSize==-1) {
-		finetangent = LoadAResource(rFineTangent);
-		finesine = LoadAResource(rFineSine);
+		finetangent = W_GetLumpByNum(rFineTangent);
+		finesine = W_GetLumpByNum(rFineSine);
 	}
-	scaleatzptr = LoadAResource(rScaleAtZ);
-	viewangletox = LoadAResource(rViewAngleToX);
-	xtoviewangle = LoadAResource(rXToViewAngle);
+	scaleatzptr = W_GetLumpByNum(rScaleAtZ);
+	viewangletox = W_GetLumpByNum(rViewAngleToX);
+	xtoviewangle = W_GetLumpByNum(rXToViewAngle);
 #endif
 
 	clipshortangle = xtoviewangle[0]<<ANGLETOFINESHIFT;	/* Save leftmost angle for view */
@@ -323,12 +332,8 @@ GoodBye();
 	memset(textures[130],DOORPIC+1,MAPSIZE); /* lock 1*/
 	memset(textures[131],DOORPIC+2,MAPSIZE); /* lock 2*/
 	memset(textures[132],DOORPIC+3,MAPSIZE); /* elevator*/
-	ReleaseScalers();		/* Release any compiled scalers */
-	if (!SetupScalers()) {				/* Redo any scalers */
-		return FALSE;
-	}
-	MathSize = NewSize;
-	return TRUE;
+	SetupScalers();				/* Redo any scalers */
+	MathSize = viewwidth;
 }
 
 /**********************************
@@ -340,7 +345,7 @@ GoodBye();
 void NewMap(void)
 {
 	Word x,y, tile;
-	Byte *src;
+	Byte __far* src;
 #ifdef __BIGENDIAN__
 	savenode_t *FixPtr;
 #endif
@@ -360,7 +365,7 @@ void NewMap(void)
 		} while (++x<MAPSIZE);
 	} while (++y<MAPSIZE);
 	
-	nodes = (savenode_t *)((Byte *)MapPtr + MapPtr->nodelistofs);
+	nodes = (savenode_t __far*)((Byte __far*)MapPtr + MapPtr->nodelistofs);
 #ifdef __BIGENDIAN__
 	y = MapPtr->numnodes;
 	FixPtr = nodes;
@@ -371,7 +376,7 @@ void NewMap(void)
 		--y;
 	}	
 #endif
-	pwallseg = 0;		/* No pushwalls in progress */
+	pwallseg = NULL;		/* No pushwalls in progress */
 	
 }
 
@@ -384,10 +389,12 @@ void NewMap(void)
 void StartPushWall(void)
 {
 	Word i;
-	Word segdir,segplane,segmin;
-	saveseg_t *SavePtr;				/* Temp pointer */
+	Word segdir   = 0;
+	Word segplane = 0;
+	Word segmin   = 0;
+	saveseg_t __far* SavePtr;				/* Temp pointer */
 
-	pwallseg = 0;	/* No pushwalls in progress */
+	pwallseg = NULL;	/* No pushwalls in progress */
 			
 	switch (PushWallRec.pwalldir) {	/* Which direction? */
 	case CD_NORTH:
@@ -411,7 +418,7 @@ void StartPushWall(void)
 		segdir = di_north;	/* Point north */
 	}
 	
-	SavePtr = (saveseg_t *)nodes;	/* Init pointer to the nodes */
+	SavePtr = (saveseg_t __far*)nodes;	/* Init pointer to the nodes */
 	i = MapPtr->numnodes;		/* Get the node count */
 	if (i) {				/* Maps MUST have nodes */
 		do {

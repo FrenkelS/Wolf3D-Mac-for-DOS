@@ -1,6 +1,8 @@
 #ifndef __WOLFDEF__
 #define __WOLFDEF__
 
+#define TICRATE 60
+
 #define DEMO		/* Define if this is the lame demo for dealers */
 
 /* japversion has mission pics instead */
@@ -25,7 +27,8 @@ typedef unsigned short angle_t;		/* Must be short to allow wraparound */
 typedef short fixed_t;				/* 8.8 fixed point number */	
 typedef unsigned short ufixed_t;	/* 8.8 unsigned fixed point number */
 
-#include <burger.h>		/* My standard system equates */
+#include "burger.h"		/* My standard system equates */
+#include "i_system.h"
 #include "States.h"		/* Think state equates */
 #include "Sounds.h"		/* Sound equates */
 #include "Sprites.h"	/* Sprite indexs */
@@ -40,7 +43,7 @@ typedef unsigned short ufixed_t;	/* 8.8 unsigned fixed point number */
 	upper 8 bits are the tile with the lower 8 bits being which fraction into the
 	tile the player is standing on. 
 	
-	To adjust the screen size, modify SCREENWIDTH,SCREENHEIGHT,VIEWHEIGHT,ScaleX,ScaleY
+	To adjust the screen size, modify SCREENWIDTH,SCREENHEIGHT,viewwidth,viewheight,ScaleX,ScaleY
 	
 **********************************/
 
@@ -56,7 +59,6 @@ typedef unsigned short ufixed_t;	/* 8.8 unsigned fixed point number */
 #define MAXSCALER 960		/* Number of scalers to create */
 
 #define	PLAYERSIZE	88		/* radius of player in 8.8 fixed point */
-#define	PROJECTIONSCALE	(SCREENWIDTH/2)*0x90l
 #define	FIELDOFVIEW	364*4 /* fineangles in the SCREENWIDTH wide window*/
 #define MINZ 62			/* PLAYERSIZE/sqrt(2) rounded down*/
 #define	MAXZ (32*FRACUNIT)	/* Farthest thing away */
@@ -70,7 +72,6 @@ typedef unsigned short ufixed_t;	/* 8.8 unsigned fixed point number */
 #ifdef __MAC__
 #define	SCREENWIDTH	MacWidth		/* Size of the offscreen buffer */
 #define SCREENHEIGHT MacHeight	/* Height of the offscreen buffer */
-#define VIEWHEIGHT MacViewHeight		/* Height of the viewing area */
 Word ScaleX(Word x);		/* Scale factor for 320 mode points projected to SCREEN */
 Word ScaleY(Word y);
 extern Word MacWidth;
@@ -79,12 +80,12 @@ extern Word MacViewHeight;
 #else
 #define	SCREENWIDTH	320		/* Size of the offscreen buffer */
 #define SCREENHEIGHT 200	/* Height of the offscreen buffer */
-#define VIEWHEIGHT 160		/* Height of the viewing area */
+#define MAXVIEWHEIGHT 160
 #define ScaleX(x) x		/* Scale factor for 320 mode points projected to SCREEN */
 #define ScaleY(y) y
 #endif
-#define	CENTERY	(VIEWHEIGHT/2)	/* Center of the viewing area */
-#define	CENTERX	(SCREENWIDTH/2)	/* Center of the viewing area */
+
+#define	centerx	(viewwidth/2)	/* Center of the viewing area */
 
 #define	ANGLES		512		/* Number of angles for camera */
 #define	FRACBITS	8		/* Number of bits of fraction */
@@ -184,8 +185,7 @@ typedef enum {		/* Weapons used by the player */
 	WP_MACHINEGUN,
 	WP_CHAINGUN,
 	WP_FLAMETHROWER,
-	WP_MISSILE,
-	NUMWEAPONS
+	WP_MISSILE
 } weapontype;
 
 typedef	enum {		/* State of the game */
@@ -390,7 +390,7 @@ typedef	enum {
 	DR_WEDGEDOPEN	/* Door is permenantly open */
 } dooraction_t;
 
-#define OPENTICS 120			/* Time to wait before closing a door (In Ticks) */
+#define OPENTICS (2*TICRATE)			/* Time to wait before closing a door (In Ticks) */
 #define DOORSPEED (TILEGLOBAL/64) /* Time to close a door (32 ticks) */
 
 typedef struct {
@@ -445,7 +445,7 @@ typedef struct {
 **********************************/
 
 typedef struct {
-	void *pos;				/* position of sprite info */
+	Word lumpNum;			/* lump number */
 	ufixed_t columnstep;	/* Step factor for width scale */
 	int x1,x2;				/* Left x, Right x */
 	Word actornum;			/* 0 if a static sprite / missile*/
@@ -530,28 +530,29 @@ typedef struct {		/* Must match thing_t */
 #define	TI_BLOCKMOVE	0x80		/* Block in motion here */
 #define	TI_NUMMASK	0x7f			/* Can be an area, door number, or pwall number */
 
-extern LongWord	rw_scale;
-extern LongWord	rw_scalestep;
-extern Word rw_midpoint;
-extern Word rw_mintex;
-extern Word rw_maxtex;
-extern Byte *rw_texture;
-extern int	rw_centerangle;
-extern Boolean	rw_downside;		/* True for dir_east and dir_south*/
-extern Byte *ArtData[64];
+extern Word ArtData[64];
 extern Byte textures[MAPSIZE*2+5][MAPSIZE]; /* 0-63 is horizontal, 64-127 is vertical*/
 										/* 128 - 132 are doors*/
 
 /* In Mac.c, 3DO.c, AppleIIgs.c */
 
+#ifndef __MAC__
+typedef struct {
+    short top;
+    short left;
+    short bottom;
+    short right;
+} Rect;
+#endif
+
 extern void InitTools(void);
 extern void BlastScreen(void);
 extern void BlastScreen2(Rect *BlastRect);
+extern void BlastView(void);
+extern void BlastStatusBar(void);
 extern void DoMacEvents(void);
-extern void BailOut(void);
 extern void GoodBye(void);
 extern void ReadSystemJoystick(void);
-extern Word NewGameWindow(Word NewVidSize);
 extern void ShowGetPsyched(void);
 extern void DrawPsyched(Word Index);
 extern void EndGetPsyched(void);
@@ -561,48 +562,24 @@ extern void FinishLoadGame(void);
 
 /* In StateDef.c */
 
-extern state_t states[NUMSTATES];	/* Actor states */
+extern const state_t states[NUMSTATES];	/* Actor states */
 
 /* In Doors.c */
 
-extern void AddConnection(Word Area1,Word Area2);
-extern void RemoveConnection(Word Area1,Word Area2);
-extern void RecursiveConnect(Word areanumber);
 extern void ConnectAreas(void);
 extern void OpenDoor(door_t *door);
-extern void CloseDoor(door_t *door);
 extern void OperateDoor(Word dooron);
-extern void DoorOpen(door_t *door);
-extern void DoorOpening(door_t *door);
-extern void DoorClosing(door_t *door);
 extern void MoveDoors(void);
 
 /* Missiles.c */
 
 extern missile_t *GetNewMissile(void);
-extern void ExplodeMissile(missile_t *MissilePtr);
-extern void MissileHitPlayer(missile_t *MissilePtr);
-extern Boolean MissileHitEnemy(missile_t *MissilePtr,actor_t *ActorPtr);
-extern Boolean CheckMissileActorHits(missile_t *MissilePtr);
 extern void MoveMissiles(void);
 
 /* In Level.c */
 
-extern void SpawnStatic(Word x,Word y,Word shape);
-extern void SpawnPlayer(Word x,Word y,Word dir);
-extern void SpawnStand(Word x,Word y,class_t which);
-extern void SpawnAmbush(Word x,Word y,class_t which);
-extern void SpawnDoor(Word x,Word y,Word type);
-extern void AddPWallTrack(Word x,Word y,Word tile);
-extern void SpawnPushwall(Word x,Word y,Word tile);
-extern void SpawnElevator(Word x,Word y);
-extern void SpawnOut(Word x,Word y);
-extern void SpawnSecret(Word x,Word y);
-extern void SpawnThings(void);
 extern void ReleaseMap(void);
-extern Boolean SetupGameLevel(void);
-extern Word LoadWallArt(void);
-extern Word LoadSpriteArt(void);
+extern void SetupGameLevel(void);
 
 /* In Sight.c */
 
@@ -612,11 +589,7 @@ extern void T_Stand(actor_t *ActorPtr);
 
 /* In Enmove.c */
 
-extern dirtype opposite[9];
-extern dirtype diagonal[9][9];
 extern void NewState(actor_t *ActorPtr,stateindex_t state);
-extern Boolean CheckDiag(Word x,Word y);
-extern Word CheckSide(Word x,Word y,actor_t *ActorPtr);
 extern Boolean TryWalk(actor_t *ActorPtr);
 extern void SelectDodgeDir(actor_t *ActorPtr);
 extern void SelectChaseDir(actor_t *ActorPtr);
@@ -624,52 +597,22 @@ extern void MoveActor(actor_t *ActorPtr,Word move);
 
 /* In EnThink.c */
 
-void PlaceItemType(Word shape,actor_t *ActorPtr);
-extern void KillActor(actor_t *ActorPtr);
 extern void DamageActor(Word damage,actor_t *ActorPtr);
-extern void A_Throw(actor_t *ActorPtr);
-extern void A_Launch(actor_t *ActorPtr);
-extern void A_Scream(actor_t *ActorPtr);
-extern void A_Thud(actor_t *ActorPtr);
-extern void A_Victory(actor_t *ActorPtr);
-extern void A_HitlerMorph(actor_t *ActorPtr);
-extern void A_Shoot(actor_t *ActorPtr);
-extern void A_Bite(actor_t *ActorPtr);
 extern Word CalcDistance(actor_t *ActorPtr);
-extern void A_Target(actor_t *ActorPtr);
-extern void A_MechStep(actor_t *ActorPtr);
-extern void T_Chase(actor_t *ActorPtr);
 extern void MoveActors(void);
 
 /* In PlStuff.c */
 
 extern void TakeDamage(Word points,Word x,Word y);
-extern void HealSelf(Word points);
-extern void GiveExtraMan(void);
 extern void GivePoints(LongWord points);
-extern void GiveTreasure(void);
-extern void GiveWeapon(weapontype weapon);
 extern void GiveAmmo(Word ammo);
 extern void GiveGas(Word ammo);
 extern void GiveMissile(Word ammo);
 extern void GiveKey(Word key);
-extern void BonusSound(void);
-extern void WeaponSound(void);
-extern void HealthSound(void);
-extern void KeySound(void);
 extern void GetBonus(Word x,Word y);
 
 /* In PlThink.c */
 
-extern void ChangeWeapon(void);
-extern void Cmd_Fire(void);
-extern void Cmd_Use(void);
-extern void Cmd_ChangeWeapon(void);
-extern actor_t *TargetEnemy(void);
-extern void KnifeAttack(void);
-extern void GunAttack(void);
-extern void FlameAttack(void);
-extern void MissileAttack(void);
 extern void MovePlayer(void);
 
 /* In PlMove.c */
@@ -679,8 +622,6 @@ extern void ControlMovement(void);
 /* In PushWall.c */
 
 extern pushwall_t PushWallRec;	/* Record for the single pushwall in progress */
-extern void SetPWallChange(void);
-extern void PushWallOne(void);
 extern void PushWall(Word x,Word y,Word dir);
 extern void MovePWalls(void);
 
@@ -688,6 +629,7 @@ extern void MovePWalls(void);
 
 extern void SetNumber(LongWord number,Word x,Word y,Word digits);
 extern void IO_CheckInput(void);
+extern void IO_ColorScreen(Word bonus, Word damage);
 extern void IO_DrawFloor(Word floor);
 extern void IO_DrawScore(LongWord score);
 extern void IO_DrawLives(Word lives);
@@ -705,9 +647,8 @@ extern void IO_DisplayViewBuffer(void);
 /* In SetupScalers.c */
 
 extern Boolean BuildCompScale (Word height, void **finalspot,Byte *WorkPtr);
-extern Boolean SetupScalers(void);
-extern void ReleaseScalers(void);
-extern void IO_ScaleMaskedColumn(Word x,Word scale,unsigned short *sprite,Word column);
+extern void SetupScalers(void);
+extern void IO_ScaleMaskedColumn(Word x,Word scale,Word lumpNum,Word column);
 extern void DrawSmall(Word x,Word y,Word tile);
 extern void MakeSmallFont(void);
 extern void KillSmallFont(void);
@@ -724,34 +665,23 @@ extern void StartSong(Word songnum);
 /* In WolfMain.c */
 
 extern Word w_abs(int v);
-extern Byte rndtable[256];
-extern Word rndindex;
 extern Word w_rnd(void);
-extern Word AngleFromSlope2(Word y,Word x);
 extern angle_t PointToAngle(fixed_t x,fixed_t y);
-extern void GameOver(void);
-extern void VictoryScale(void);
-extern void Died(void);
-extern void UpdateFace(void);
-extern void PrepPlayLoop(void);
-extern void PlayLoop(void);
 extern void NewGame(void);
 extern void RedrawStatusBar(void);
 extern void GameLoop(void);
+extern void StartDamageFlash(Word damage);
+extern void StartBonusFlash(void);
 
 /* In RefSprite.c */
 
-extern void Merge(Word Size1,Word Size2);
-extern void SortEvents(void);
-extern void RenderSprite(Word x1,Word x2,vissprite_t *rs_seg);
-extern void AddSprite(thing_t *thing,Word actornum);
 extern void DrawTopSprite(void);
 extern void DrawSprites(void);
 
 /* In Refresh.c */
 
-extern savenode_t *nodes;
-extern saveseg_t *pwallseg;
+extern savenode_t __far* nodes;
+extern saveseg_t __far* pwallseg;
 extern fixed_t	FixedByFrac(fixed_t a, fixed_t b);
 extern fixed_t	SUFixedMul(fixed_t a, ufixed_t b);
 extern fixed_t	FixedDiv(fixed_t a, fixed_t b);
@@ -759,7 +689,7 @@ extern fixed_t R_TransformX(fixed_t x,fixed_t y);
 extern fixed_t R_TransformZ(fixed_t x,fixed_t y);
 extern Word ScaleFromGlobalAngle(int visangle,int distance);
 extern void DrawAutomap(Word tx,Word ty);
-extern Boolean StartupRendering(Word NewSize);
+extern void StartupRendering(void);
 extern void NewMap(void);
 extern void StartPushWall(void);
 extern void AdvancePushWall(void);
@@ -767,49 +697,38 @@ extern void RenderView(void);
 
 /* In Refresh2.c */
 
-extern Word MathSize;		/* The current size of the math tables */
-extern Word *scaleatzptr;	/* Pointer to the scale table for z projection */
-extern short *xtoviewangle;	/* Screen x to view angle */
-extern short *viewangletox;	/* View angle to screen x */
-extern short *finetangent;	/* Fine tangent table */
-extern short *finesine;		/* Fine sine table */
-extern fixed_t sintable[ANGLES];	/* Course sine table */
-extern fixed_t costable[ANGLES];	/* Course cosine table */
-extern Word tantoangle[513];		/* Course tangent to angle table */
+extern Word __far* scaleatzptr;	/* Pointer to the scale table for z projection */
+extern short __far* xtoviewangle;	/* Screen x to view angle */
+extern short __far* viewangletox;	/* View angle to screen x */
+extern const short finetangent[FINEANGLES/2];	/* Fine tangent table */
+extern const short finesine[FINEANGLES/2];		/* Fine sine table */
+extern const fixed_t sintable[ANGLES];	/* Course sine table */
+extern const fixed_t costable[ANGLES];	/* Course cosine table */
+extern const Word tantoangle[513];		/* Course tangent to angle table */
 extern void GetTableMemory(void);
 
 /* In RefBsp.c */
 
-extern void RenderWallLoop(Word x1,Word x2,Word distance);
-extern void RenderWallRange(Word start,Word stop,saveseg_t *seg,Word distance);
-extern void ClipWallSegment(Word top,Word bottom,saveseg_t *seg,Word distance);
 extern void ClearClipSegs(void);
-extern void P_DrawSeg(saveseg_t *seg);
-extern Boolean CheckBSPNode(Word boxpos);
-extern void TerminalNode(saveseg_t *seg);
 extern void RenderBSPNode(Word bspnum);
 
 /* In SnesMain.c */
 
 extern void SetupPlayScreen(void);
 extern void RunAutoMap(void);
-extern void StartGame(void);
-extern Boolean TitleScreen(void);
 extern void WolfMain(void);
 
 /* In Intermis.c */
 
-extern void LevelCompleted(void);
 extern void Intermission(void);
 extern void VictoryIntermission(void);
 extern void CharacterCast(void);
 
 /* In Data.c */
 
-extern void *SpriteArray[S_LASTONE];			/* Pointers to all the sprites */
+extern Word SpriteArray[S_LASTONE];			/* Resource numbers of all the sprites */
 extern Word tilemap[MAPSIZE][MAPSIZE];	/* Main tile map */
 extern Word ConnectCount;				/* Number of valid interconnects */
-extern connect_t areaconnect[MAXDOORS];	/* Is this area mated with another? */
 extern Boolean areabyplayer[MAXAREAS];	/* Which areas can I see into? */
 extern Word numstatics;					/* Number of active static objects */
 extern static_t	statics[MAXSTATICS];	/* Data for the static items */
@@ -820,35 +739,27 @@ extern missile_t missiles[MAXMISSILES];		/* Data for the missile items */
 extern Word numactors;						/* Number of active actors */
 extern actor_t actors[MAXACTORS];			/* Data for the actors */
 extern t_compscale *AllScalers[MAXSCALER];	/* Pointers to all the compiled scalers */	
-extern Byte **GameShapes;		/* Pointer to the game shape array */
 extern Word difficulty;					/* 0 = easy, 1= normal, 2=hard*/
 extern gametype_t gamestate;			/* Status of the game (Save game) */
 extern exit_t playstate;				/* Current status of the game */
 extern Word killx,killy;				/* X,Y of the thing that killed you! */
 extern Boolean madenoise;				/* True when shooting or screaming*/
 extern Boolean playermoving;			/* Is the player in motion? */
-extern Boolean useheld;					/* Holding down the use key? */
-extern Boolean selectheld;				/* Weapon select held down */
-extern Boolean attackheld;				/* Attack button held down? */
 extern Boolean buttonstate[NUMBUTTONS];	/* Current input */
 extern Word joystick1;					/* Joystick value */
-extern int mousex;						/* Mouse x movement */
-extern int mousey;						/* Mouse y movement */
+extern Boolean strafe;
+extern Boolean mousebutton;
 extern int mouseturn;					/* Mouse turn factor */
 extern Word nextmap;					/* Next map to warp to */
 extern Word facecount;					/* Time to show a specific head */
 extern Word faceframe;					/* Head pic to show */
-extern Word elevatorx,elevatory;		/* x,y of the elevator */
-extern Word firstframe;					/* if non 0, the screen is still faded out */
-extern Word OldMapNum;					/* Currently loaded map # */
-extern loadmap_t *MapPtr;				/* Pointer to current loaded map */
+extern Boolean firstframe;					/* if TRUE, the screen is still faded out */
+extern loadmap_t __far* MapPtr;				/* Pointer to current loaded map */
 extern int clipshortangle;				/* Angle for the left edge of the screen */
 extern int clipshortangle2;				/* clipshortangle * 2 */
-extern classinfo_t classinfo[];			/* Class information for all bad guys */
+extern const classinfo_t classinfo[];			/* Class information for all bad guys */
 extern Word viewx;						/* X coord of camera */
 extern Word viewy;						/* Y coord of camera */
-extern fixed_t viewsin;					/* Base sine for viewing angle */
-extern fixed_t viewcos;					/* Base cosine for viewing angle */
 extern Word normalangle;				/* Normalized angle for view (NSEW) */
 extern Word centerangle;				/* viewangle in fineangles*/
 extern Word centershort;				/* viewangle in 64k angles*/
@@ -857,24 +768,21 @@ extern Word topspritenum;				/* Shape of topmost sprite */
 extern Word xscale[1024];		/* Scale factor for width of the screen */
 extern Word numvisspr;				/* Number of valid visible sprites */
 extern vissprite_t	vissprites[MAXVISSPRITES];	/* Buffer for sprite records */
-extern Word xevents[MAXVISSPRITES]; /* Scale events for sprite sort */
-extern Word sortbuffer[MAXVISSPRITES]; /* mergesort requires an extra buffer*/
 extern Word *firstevent;			/* First event in sorted list */
 extern Boolean areavis[MAXAREAS];	/* Area visible */
 extern Word bspcoord[4];			/* Rect for the BSP search */
 extern Word TicCount;				/* Ticks since last screen draw */
-extern Word LastTicCount;			/* Tick value at start of render */
-extern Word MacVidSize;		/* Current 0 = 320, 1 = 512, 2 = 640 */
-extern Word SlowDown;		/* If true, then limit game to 30hz */
-extern Word MouseEnabled;	/* Allow mouse control */
-extern Word GameViewSize;	/* Size of the game screen */
 extern Boolean IntermissionHack;	/* Hack for preventing double score drawing during intermission */
-extern Word NoWeaponDraw;		/* Flag to not draw the weapon on the screen */
-extern maplist_t *MapListPtr;		/* Pointer to map info record */
-extern unsigned short *SongListPtr;	/* Pointer to song list record */
-extern unsigned short *WallListPtr;	/* Pointer to wall list record */
-extern Word MaxScaler;			/* Maximum number of VALID scalers */
-extern Word NaziSound[];		/* Sounds for nazis starting */
+extern Boolean NoWeaponDraw;		/* Flag to not draw the weapon on the screen */
+extern maplist_t __far* MapListPtr;		/* Pointer to map info record */
+extern unsigned short __far* SongListPtr;	/* Pointer to song list record */
+extern unsigned short __far* WallListPtr;	/* Pointer to wall list record */
+extern const Word NaziSound[];		/* Sounds for nazis starting */
 extern Boolean ShowPush;		/* Cheat for showing pushwalls on automap */
+extern Boolean ShowFps;
+extern Word viewwidth;
+extern Word scaledviewwidth;
+extern Word viewheight;		/* Height of the viewing area */
+extern Word detailshift;
 
 #endif /* __WOLFDEF__ */

@@ -127,7 +127,7 @@ Boolean CheckLine(actor_t *ActorPtr)
 
 void FirstSighting(actor_t *ActorPtr)
 {
-	classinfo_t	*info;
+	const classinfo_t	*info;
 	Word sound;
 	
 	info = &classinfo[ActorPtr->class];	/* Get pointer to info record */

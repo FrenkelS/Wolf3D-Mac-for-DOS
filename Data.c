@@ -8,7 +8,6 @@
 
 Word tilemap[MAPSIZE][MAPSIZE];		/* Main tile map */
 Word ConnectCount;					/* Number of valid interconnects */
-connect_t areaconnect[MAXDOORS];	/* Is this area mated with another? */
 Boolean	areabyplayer[MAXAREAS];		/* Which areas can I see into? */
 Word numstatics;					/* Number of active static objects */
 static_t statics[MAXSTATICS];		/* Data for the static items */
@@ -18,34 +17,26 @@ Word nummissiles;					/* Number of active missiles */
 missile_t missiles[MAXMISSILES];	/* Data for the missile items */
 Word numactors;						/* Number of active actors */
 actor_t actors[MAXACTORS];			/* Data for the actors */
-unsigned char **GameShapes;			/* Pointer to the game shape array */
 Word difficulty;					/* 0 = easy, 1= normal, 2=hard*/
 gametype_t gamestate;				/* Status of the game (Save game) */
 exit_t playstate;					/* Current status of the game */
 Word killx,killy;					/* X,Y of the thing that killed you! */
 Boolean madenoise;					/* True when shooting or screaming*/
 Boolean playermoving;				/* Is the player in motion? */
-Boolean useheld;					/* Holding down the use key? */
-Boolean selectheld;					/* Weapon select held down? */
-Boolean attackheld;					/* Attack button held down? */
 Boolean	buttonstate[NUMBUTTONS];	/* Current input */
 Word joystick1;						/* Joystick value */
-int mousex;							/* Mouse x movement */
-int mousey;							/* Mouse y movement */
+Boolean strafe;
+Boolean mousebutton;
 int	mouseturn;						/* Mouse turn movement */
 Word nextmap;						/* Next map to warp to */
 Word facecount;						/* Time to show a specific head */
 Word faceframe;						/* Head pic to show */
-Word elevatorx,elevatory;			/* x,y of the elevator */
-Word firstframe;					/* if non 0, the screen is still faded out */
-Word OldMapNum;						/* Currently loaded map # */
-loadmap_t *MapPtr;					/* Pointer to current loaded map */
+Boolean firstframe;					/* if TRUE, the screen is still faded out */
+loadmap_t __far* MapPtr;					/* Pointer to current loaded map */
 int clipshortangle;					/* Angle for the left edge of the screen */
 int clipshortangle2;				/* clipshortangle * 2 */
 Word viewx;							/* X coord of camera */
 Word viewy;							/* Y coord of camera */
-fixed_t	viewsin;					/* Base sine for viewing angle */
-fixed_t viewcos;					/* Base cosine for viewing angle */
 Word normalangle;					/* Normalized angle for view (NSEW) */
 Word centerangle;					/* viewangle in fineangles*/
 Word centershort;					/* viewangle in 64k angles*/
@@ -54,39 +45,28 @@ Word topspritenum;					/* Shape of topmost sprite */
 Word xscale[1024];	/* Scale factor for width of the screen */
 Word numvisspr;				/* Number of valid visible sprites */
 vissprite_t	vissprites[MAXVISSPRITES];	/* Buffer for sprite records */
-Word xevents[MAXVISSPRITES]; /* Scale events for sprite sort */
-Word sortbuffer[MAXVISSPRITES];	/* mergesort requires an extra buffer*/
 Word *firstevent;			/* First event in sorted list */
 Boolean areavis[MAXAREAS];	/* Area visible */
 Word bspcoord[4];			/* Rect for the BSP search */
 Word TicCount;				/* Ticks since last screen draw */
-Word LastTicCount;			/* Tick value at start of render */
 Boolean IntermissionHack;		/* Hack for preventing double score drawing during intermission */
 
-Word rw_maxtex;
-Word rw_mintex;
-LongWord rw_scalestep;
-Word rw_midpoint;
-Boolean rw_downside;
-int rw_centerangle;
-Byte *rw_texture;
-LongWord rw_scale;
-Byte *ArtData[64];
-void *SpriteArray[S_LASTONE];
-Word MacVidSize = -1;
-Word SlowDown = 1;			/* Force the game to 15 hz */
-Word MouseEnabled = 0;		/* Allow mouse control */
-Word GameViewSize = 0;		/* Size of the game screen */
-Word NoWeaponDraw=1;			/* Flag to not draw the weapon on the screen */
-maplist_t *MapListPtr;		/* Pointer to map info record */
-unsigned short *SongListPtr;	/* Pointer to song list record */
-unsigned short *WallListPtr;	/* Pointer to wall list record */
-Word MaxScaler = 1;			/* Maximum number of VALID scalers */
+Word ArtData[64];
+Word SpriteArray[S_LASTONE];
+Boolean NoWeaponDraw=TRUE;			/* Flag to not draw the weapon on the screen */
+maplist_t __far* MapListPtr;		/* Pointer to map info record */
+unsigned short __far* SongListPtr;	/* Pointer to song list record */
+unsigned short __far* WallListPtr;	/* Pointer to wall list record */
 Boolean ShowPush;			/* Cheat for pushwalls */
+Boolean ShowFps;
+Word viewwidth       = SCREENWIDTH;
+Word scaledviewwidth = SCREENWIDTH;
+Word viewheight      = MAXVIEWHEIGHT;
+Word detailshift     = 0;
 Byte textures[MAPSIZE*2+5][MAPSIZE];	/* Texture indexes */
-Word NaziSound[] = {SND_ESEE,SND_ESEE2,SND_ESEE3,SND_ESEE4};
+const Word NaziSound[] = {SND_ESEE,SND_ESEE2,SND_ESEE3,SND_ESEE4};
 
-classinfo_t	classinfo[] = {	/* Info for all the bad guys */
+const classinfo_t	classinfo[] = {	/* Info for all the bad guys */
 	{SND_ESEE,SND_EDIE,		/* Nazi */
 	ST_GRD_WLK1, ST_GRD_STND, ST_GRD_ATK1,ST_GRD_PAIN,ST_GRD_DIE,
 	100, 5, 0x0F, 6},
