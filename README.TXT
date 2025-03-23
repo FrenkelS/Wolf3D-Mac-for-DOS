@@ -1,26 +1,27 @@
-## MacWolf for DOS
-![MacWolf for DOS](readme_imgs/macwolf.gif?raw=true)
+MacWolf for DOS
+Macintosh Wolfenstein 3D ported to DOS
+https://github.com/FrenkelS/Wolf3D-Mac-for-DOS
 
-The Macintosh version of Wolfenstein 3D has different graphics, sound, music and levels compared to the DOS version.
+The Macintosh version of Wolfenstein 3D has different graphics, sound, music
+and levels compared to the DOS version.
 This is a port of the Macintosh version to DOS.
 There are two versions: a 32-bit version and a 16-bit version.
 
-The 32-bit version requires a 386 CPU and supports PC Speaker sound effects, and digital sound effects through a Sound Blaster.
-Music is supported via Adlib, Sound Blaster, Pro Audio Spectrum, General MIDI, Wave Blaster and Sound Canvas.
+The 32-bit version requires a 386 CPU and supports PC Speaker sound effects,
+and digital sound effects through a Sound Blaster.
+Music is supported via Adlib, Sound Blaster, Pro Audio Spectrum,
+General MIDI, Wave Blaster and Sound Canvas.
 
 The 16-bit version requires a 286 CPU and 2084 kB of XMS memory.
 It only supports PC Speaker sound effects and no music.
-64 kB of EMS memory is used, if available, as an upper memory block to store data.
+64 kB of EMS memory is used, if available, as an upper memory block to store
+data.
 
 Both versions require a VGA graphics card.
 
-It's based on the original [Macintosh Wolfenstein 3D source release](https://github.com/Blzut3/Wolf3D-Mac).
+It's based on the original Macintosh Wolfenstein 3D source release.
 
-Download MacWolf for DOS [here](https://github.com/FrenkelS/Wolf3D-Mac-for-DOS/releases).
-
-Watch what it looks like on a real PC [here](https://www.youtube.com/watch?v=69g_g_kB9bQ).
-
-**What's special?:**
+What's special?
  - Supports only Wolfenstein 3D: First Encounter, that is, the first 3 levels
  - The palette changes when the player gets hurt or picks up an item 
  - Screen resizing
@@ -29,12 +30,12 @@ Watch what it looks like on a real PC [here](https://www.youtube.com/watch?v=69g
  - No saving and loading
  - No joystick support
 
-## Supported video modes
+Supported video modes:
+|Video mode                    |Executable 286|Executable 386|
+|------------------------------|--------------|--------------|
+|VGA 320x200 256 color Mode Y  |MWOLF286.EXE  |MWOLF386.EXE  |
 
-### VGA 320x200 256 color Mode Y
-![MacWolf for DOS in 256 colors](readme_imgs/macwolf.png?raw=true)
-
-## Controls:
+Controls:
 |Action               |Keys                   |
 |---------------------|-----------------------|
 |Fire                 |Ctrl & any mouse button|
@@ -50,9 +51,9 @@ Watch what it looks like on a real PC [here](https://www.youtube.com/watch?v=69g
 |Resize screen        |+ & -                  |
 |Quit to DOS          |Esc & F10              |
 
-## Cheats:
-|Code       |Effects                  |
-|-----------|-------------------------|
+Cheats:
+|Code      |Effects                  |
+|----------|-------------------------|
 |XUSCNIELPPA|God mode & Weapons & Keys|
 |IDDQD      |God mode                 |
 |BURGER     |Weapons                  |
@@ -63,7 +64,7 @@ Watch what it looks like on a real PC [here](https://www.youtube.com/watch?v=69g
 |APPLEIIGS  |Show pushwalls on automap|
 |RATE       |Toggle FPS counter       |
 
-## Command line arguments:
+Command line arguments:
 |Command line argument|Effect                              |
 |---------------------|------------------------------------|
 |baby                 |Difficulty: Can I play daddy?       |
@@ -79,18 +80,3 @@ Watch what it looks like on a real PC [here](https://www.youtube.com/watch?v=69g
 |noems                |Disable EMS                         |
 |noxms                |Disable XMS                         |
 |nomouse              |Disable mouse                       |
-
-## Building 32-bit:
-1) Install [Watcom](https://github.com/open-watcom/open-watcom-v2).
-
-2) Run `setenvwc.bat` to set the Watcom environment variables.
-
-3) Run `bw32my.bat` to build `MWOLF386.EXE`
-
-## Building 16-bit:
-1) Install [gcc-ia16](https://launchpad.net/%7Etkchia/+archive/ubuntu/build-ia16) (including [libi86](https://gitlab.com/tkchia/libi86)) and [NASM](https://www.nasm.us) on Ubuntu.
-
-2) Run `bg16my.sh` to build `MWOLF286.EXE`
-
-## Building WAD file:
-MacWolf for DOS needs a WAD file that's created when `mvn verify` is run in the `wad` folder.
