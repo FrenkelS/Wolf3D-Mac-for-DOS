@@ -111,7 +111,11 @@ static Boolean W_LoadWADIntoXMS(void)
 	xms = Z_InitXms(size);
 	if (!xms)
 	{
+#if defined __IA16_SYS_MSDOS
+		I_Error("Not enough XMS available");
+#else
 		printf("Not enough XMS available\n");
+#endif
 		return FALSE;
 	}
 
