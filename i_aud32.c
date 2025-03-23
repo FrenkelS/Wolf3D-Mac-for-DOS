@@ -154,6 +154,7 @@ void I_ShutdownSound(void)
 **********************************/
 
 static Word LastSoundNum = -1;
+static Word LastPriority = -1;
 static Word soundHandle  = -1;
 static uint8_t __far data[65535];
 
@@ -162,7 +163,6 @@ void PlaySound(Word SoundNum)
 	uint16_t length;
 	uint8_t __far* lump;
 	Word priority;
-	Word handle;
 
 	if (SoundNum == 0)
 		return;
@@ -178,6 +178,14 @@ void PlaySound(Word SoundNum)
 		return;
 	}
 
+	if (MV_VoicePlaying(soundHandle)) {
+		if (priority < LastPriority) {
+			return;
+		}
+
+		MV_Kill(soundHandle);
+	}
+
 	length = W_LumpLength(SoundNum + 77);
 	lump   = W_TryGetLumpByNum(SoundNum + 77);
 	if (lump != NULL) {
@@ -187,11 +195,9 @@ void PlaySound(Word SoundNum)
 		W_ReadLumpByNum(SoundNum + 77, data);
 	}
 
-	handle = MV_PlayRaw(lump, length, priority);
-	if (handle != -1) {
-		LastSoundNum = SoundNum;
-		soundHandle  = handle;
-	}
+	LastSoundNum = SoundNum;
+	LastPriority = priority;
+	soundHandle  = MV_PlayRaw(data, length);
 }
 
 /**********************************
@@ -219,6 +225,7 @@ void StopSound(Word SoundNum)
 	MV_Kill(soundHandle);
 
 	LastSoundNum = -1;
+	LastPriority = -1;
 	soundHandle  = -1;
 }
 

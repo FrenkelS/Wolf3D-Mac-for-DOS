@@ -808,13 +808,14 @@ static void MV_StopPlayback(void)
    Begin playback of sound data
 ---------------------------------------------------------------------*/
 
-Word MV_PlayRaw(uint8_t __far* ptr, Word length, Word priority)
+Word MV_PlayRaw(uint8_t __far* ptr, Word length)
 {
 	VoiceNode *voice;
 
-	int32_t vol         = 254;
-	int32_t left        = 254;
-	int32_t right       = 254;
+	int32_t vol      = 254;
+	int32_t left     = 254;
+	int32_t right    = 254;
+	int32_t priority = 27;
 
 	if (!MV_Installed)
 	{
