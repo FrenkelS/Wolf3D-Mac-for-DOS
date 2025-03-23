@@ -37,7 +37,8 @@ Watch what it looks like on a real PC [here](https://www.youtube.com/watch?v=69g
 |Fire                 |Ctrl & any mouse button|
 |Use                  |Enter & Space & E      |
 |Sprint               |Shift                  |
-|Walk                 |Arrow keys & W & S     |
+|Walk                 |Up & Down & W & S      |
+|Turn                 |Left & Right & mouse   |
 |Strafe               |Alt                    |
 |Strafe left and right|< & > & A & D          |
 |Automap              |Tab                    |
