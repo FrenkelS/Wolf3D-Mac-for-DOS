@@ -1,5 +1,5 @@
 
-# MACWOLF.EXE Linker directive file
+# MWOLF386.EXE Linker directive file
 
 option quiet
 option map
@@ -11,7 +11,7 @@ libpath %WATCOM%\lib386
 libpath %WATCOM%\lib386\dos
 lib noemu387.lib
 format os2 le
-name MACWOLF
+name MWOLF386
 alias MV_Mix8BitMono_=_MV_Mix8BitMono, MV_Mix8BitStereo_=_MV_Mix8BitStereo, MV_Mix16BitMono_=_MV_Mix16BitMono, MV_Mix16BitStereo_=_MV_Mix16BitStereo
 
 file a_al_mid.obj

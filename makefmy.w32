@@ -1,5 +1,5 @@
 
-# MACWOLF.EXE makefile
+# MWOLF386.EXE makefile
 
 # --------------------------------------------------------------------------
 #
@@ -68,10 +68,10 @@ GLOBOBJS = &
  WolfMain.obj &
  z_zone.obj
 
-WC32\MACWOLF.EXE : $(GLOBOBJS)
+WC32\MWOLF386.EXE : $(GLOBOBJS)
  cd WC32
  wlink @..\mw32my.lnk
- wstrip MACWOLF.EXE
+ wstrip MWOLF386.EXE
  cd..
 
 .obj : WC32

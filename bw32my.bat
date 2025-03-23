@@ -1,7 +1,7 @@
 if "%WATCOM%" == "" goto error
 
 mkdir WC32
-wmake -f makefmy.w32 WC32\MACWOLF.EXE
+wmake -f makefmy.w32 WC32\MWOLF386.EXE
 del *.err
 goto end
 

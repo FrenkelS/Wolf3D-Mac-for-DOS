@@ -15,7 +15,7 @@ fi
 
 if [ -z "$OUTPUT" ]
 then
-  export OUTPUT=MACWOLF.EXE
+  export OUTPUT=MWOLF286.EXE
 fi
 
 nasm i_vmya.asm -f elf -DCPU=$CPU
