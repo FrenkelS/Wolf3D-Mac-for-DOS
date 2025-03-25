@@ -120,12 +120,14 @@ static void DrawShape(Word x, Word y, void __far* ShapePtr)
 	unsigned char __far* ScreenPtr;
 	volatile unsigned char __far* Screenad;
 	unsigned char __far* ShapePtr2;
+	unsigned char __far* ShapePtr2ad;
 	unsigned short __far* ShapePtr3;
 	Word Width;
 	Word Height;
-	Word Width2;
 	Word Plane;
 	unsigned char __far* vp;
+	Word w;
+	Word h;
 
 	ShapePtr3 = ShapePtr;
 	Width     = ShapePtr3[0];		/* 16 bit width */
@@ -133,22 +135,27 @@ static void DrawShape(Word x, Word y, void __far* ShapePtr)
 	ShapePtr2 = (unsigned char __far*) &ShapePtr3[2];
 	vp = D_MK_FP(PAGE0, 0 + __djgpp_conventional_base);
 	ScreenPtr = &vp[(y * PLANEWIDTH) + (x >> 2)];
-	do {
-		Plane = x & 3;
-		Width2 = Width;
-		Screenad = ScreenPtr;
-		do {
-			outp(SC_INDEX + 1, 1 << Plane);
-			*(Screenad + 0u * PAGE_SIZE * 16) = *ShapePtr2;
-			*(Screenad + 1u * PAGE_SIZE * 16) = *ShapePtr2;
-			*(Screenad + 2u * PAGE_SIZE * 16) = *ShapePtr2++;
-			if (++Plane == 4) {
-				Plane = 0;
-				++Screenad;
-			}
-		} while (--Width2);
-		ScreenPtr += PLANEWIDTH;
-	} while (--Height);
+
+	Plane = x & 3;
+	for (w = Width; w != 0; w--) {
+		outp(SC_INDEX + 1, 1 << Plane);
+
+		ShapePtr2ad = ShapePtr2;
+		Screenad    = ScreenPtr;
+		for (h = Height; h != 0; h--) {
+			*(Screenad + 0u * PAGE_SIZE * 16) = *ShapePtr2ad;
+			*(Screenad + 1u * PAGE_SIZE * 16) = *ShapePtr2ad;
+			*(Screenad + 2u * PAGE_SIZE * 16) = *ShapePtr2ad;
+			ShapePtr2ad += Width;
+			Screenad    += PLANEWIDTH;
+		}
+
+		ShapePtr2++;
+		if (++Plane == 4) {
+			Plane = 0;
+			ScreenPtr++;
+		}
+	}
 }
 
 
