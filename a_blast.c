@@ -920,12 +920,6 @@ void BLASTER_SetupWaveBlaster(void)
 }
 
 
-Boolean BLASTER_IsSwapLeftRight(void)
-{
-	return BLASTER_Config.Type == SBPro;
-}
-
-
 /*---------------------------------------------------------------------
    Function: BLASTER_Init
 

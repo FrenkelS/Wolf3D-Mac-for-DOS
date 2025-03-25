@@ -131,7 +131,6 @@ static int32_t MV_Bits       = 8;
 #define SILENCE_8BIT      0x80808080
 
 static int32_t MV_Silence    = SILENCE_8BIT;
-static Boolean MV_SwapLeftRight = FALSE;
 
 #define SAMPLE_RATE 22050
 
@@ -661,23 +660,12 @@ static void MV_SetVoiceMixMode(VoiceNode *voice)
    with the specified handle.
 ---------------------------------------------------------------------*/
 
-static void MV_SetVoiceVolume(VoiceNode *voice, int32_t vol, int32_t left, int32_t right)
+static void MV_SetVoiceVolume(VoiceNode *voice, int32_t vol)
 {
-	if (MV_Channels == 1)
-	{
-		left  = vol;
-		right = vol;
-	}
+	int16_t *table = MV_GetVolumeTable(vol);
 
-	if (MV_SwapLeftRight)
-	{
-		// SBPro uses reversed panning
-		voice->LeftVolume  = MV_GetVolumeTable(right);
-		voice->RightVolume = MV_GetVolumeTable(left);
-	} else {
-		voice->LeftVolume  = MV_GetVolumeTable(left);
-		voice->RightVolume = MV_GetVolumeTable(right);
-	}
+	voice->LeftVolume  = table;
+	voice->RightVolume = table;
 
 	MV_SetVoiceMixMode(voice);
 }
@@ -812,10 +800,8 @@ Word MV_PlayRaw(uint8_t __far* ptr, Word length)
 {
 	VoiceNode *voice;
 
-	int32_t vol      = 254;
-	int32_t left     = 254;
-	int32_t right    = 254;
-	int32_t priority = 27;
+	int32_t vol      = 127;
+	int32_t priority =  27;
 
 	if (!MV_Installed)
 	{
@@ -841,7 +827,7 @@ Word MV_PlayRaw(uint8_t __far* ptr, Word length)
 	voice->priority    = priority;
 
 	MV_SetVoicePitch(voice);
-	MV_SetVoiceVolume(voice, vol, left, right);
+	MV_SetVoiceVolume(voice, vol);
 	MV_PlayVoice(voice);
 
 	return voice->handle;
@@ -1019,13 +1005,10 @@ void MV_Init(int32_t soundcard, int32_t Voices)
 			ptr = (uint8_t *)(((uint32_t)ptr & 0xff0000) + 0x10000);
 	}
 
-	MV_SwapLeftRight = FALSE;
-
 	// Initialize the sound card
 	switch (soundcard)
 	{
 		case AHW_SOUND_BLASTER:
-			MV_SwapLeftRight = BLASTER_IsSwapLeftRight();
 			break;
 
 		default:

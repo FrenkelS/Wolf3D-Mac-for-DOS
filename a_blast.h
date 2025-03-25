@@ -52,7 +52,6 @@ void     BLASTER_StopPlayback(void);
 int32_t  BLASTER_BeginBufferedPlayback(uint8_t *BufferStart, int32_t BufferSize, int32_t NumDivisions, uint32_t SampleRate, int32_t MixMode, void (*CallBackFunc)(void));
 Boolean  BLASTER_Detect(void);
 void     BLASTER_SetupWaveBlaster(void);
-Boolean  BLASTER_IsSwapLeftRight(void);
 void     BLASTER_Init(void);
 void     BLASTER_Shutdown(void);
 
