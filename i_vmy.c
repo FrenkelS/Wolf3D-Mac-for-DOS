@@ -221,36 +221,45 @@ static void DrawMShape(Word x,Word y,void __far* ShapePtr)
 	unsigned char __far* ScreenPtr;
 	volatile unsigned char __far* Screenad;
 	unsigned char __far* MaskPtr;
+	unsigned char __far* MaskPtrad;
 	unsigned char __far* ShapePtr2;
+	unsigned char __far* ShapePtr2ad;
 	Word Width;
 	Word Height;
-	Word Width2;
 	Word Plane;
+	Word w;
+	Word h;
 
-	ShapePtr2 = ShapePtr;
-	Width  = ShapePtr2[0];
-	Height = ShapePtr2[2];
+	ShapePtr2  = ShapePtr;
+	Width      = ShapePtr2[0];
+	Height     = ShapePtr2[2];
 	ShapePtr2 += 4;
-	MaskPtr   = &ShapePtr2[Width * Height];
-	ScreenPtr = &ViewPointer[(y * PLANEWIDTH) + (x >> 2)];
+	MaskPtr    = &ShapePtr2[Width * Height];
+	ScreenPtr  = &ViewPointer[(y * PLANEWIDTH) + (x >> 2)];
 
-	do {
-		Plane = x & 3;
-		Width2 = Width;
-		Screenad = ScreenPtr;
-		do {
-			if (!*MaskPtr++) {
-				outp(SC_INDEX + 1, 1 << Plane);
-				*Screenad = *ShapePtr2;
+	Plane = x & 3;
+	for (w = Width; w != 0; w--) {
+		outp(SC_INDEX + 1, 1 << Plane);
+
+		MaskPtrad   = MaskPtr;
+		ShapePtr2ad = ShapePtr2;
+		Screenad    = ScreenPtr;
+		for (h = Height; h != 0; h--) {
+			if (!*MaskPtrad) {
+				*Screenad = *ShapePtr2ad;
 			}
-			++ShapePtr2;
-			if (++Plane == 4) {
-				Plane = 0;
-				++Screenad;
-			}
-		} while (--Width2);
-		ScreenPtr += PLANEWIDTH;
-	} while (--Height);
+			MaskPtrad   += Width;
+			ShapePtr2ad += Width;
+			Screenad    += PLANEWIDTH;
+		}
+
+		MaskPtr++;
+		ShapePtr2++;
+		if (++Plane == 4) {
+			Plane = 0;
+			ScreenPtr++;
+		}
+	}
 }
 
 
@@ -259,43 +268,46 @@ static void DrawMShapeHalf(Word x,Word y,void __far* ShapePtr)
 	unsigned char __far* ScreenPtr;
 	volatile unsigned char __far* Screenad;
 	unsigned char __far* MaskPtr;
+	unsigned char __far* MaskPtrad;
 	unsigned char __far* ShapePtr2;
+	unsigned char __far* ShapePtr2ad;
 	Word Width;
 	Word Height;
-	Word Width2;
 	Word Plane;
-	Word WidthOdd;
+	Word w;
+	Word h;
 
-	ShapePtr2 = ShapePtr;
-	Width  = ShapePtr2[0];
-	Height = ShapePtr2[2];
+	ShapePtr2  = ShapePtr;
+	Width      = ShapePtr2[0];
+	Height     = ShapePtr2[2];
 	ShapePtr2 += 4;
-	MaskPtr   = &ShapePtr2[Width * Height];
-	ScreenPtr = &ViewPointer[(y * PLANEWIDTH) + (x >> 2)];
-	WidthOdd = Width & 1;
-	Height = (Height / 2) + (Height & 1);
+	MaskPtr    = &ShapePtr2[Width * Height];
+	ScreenPtr  = &ViewPointer[(y * PLANEWIDTH) + (x >> 2)];
+	Height     = (Height / 2) + (Height & 1);
 
-	do {
-		Plane = x & 3;
-		Width2 = Width / 2;
-		Screenad = ScreenPtr;
-		do {
-			if (!*MaskPtr++) {
-				outp(SC_INDEX + 1, 1 << Plane);
-				*Screenad = *ShapePtr2;
+	Plane = x & 3;
+	for (w = (Width / 2) + (Width & 1); w != 0; w--) {
+		outp(SC_INDEX + 1, 1 << Plane);
+
+		MaskPtrad   = MaskPtr;
+		ShapePtr2ad = ShapePtr2;
+		Screenad    = ScreenPtr;
+		for (h = Height; h != 0; h--) {
+			if (!*MaskPtrad) {
+				*Screenad = *ShapePtr2ad;
 			}
-			++ShapePtr2;
-			++MaskPtr;
-			++ShapePtr2;
-			if (++Plane == 4) {
-				Plane = 0;
-				++Screenad;
-			}
-		} while (--Width2);
-		MaskPtr   += Width + WidthOdd;
-		ShapePtr2 += Width + WidthOdd;
-		ScreenPtr += PLANEWIDTH;
-	} while (--Height);
+			MaskPtrad   += Width * 2;
+			ShapePtr2ad += Width * 2;
+			Screenad    += PLANEWIDTH;
+		}
+
+		MaskPtr   += 2;
+		ShapePtr2 += 2;
+		if (++Plane == 4) {
+			Plane = 0;
+			ScreenPtr++;
+		}
+	}
 }
 
 
