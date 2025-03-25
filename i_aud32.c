@@ -52,8 +52,8 @@ static const Word priorities[NUMSOUNDS] = {
 	50, // SND_ESEE2
 	50, // SND_EDIE
 	50, // SND_EDIE2
-	0, // SND_BODYFALL
-	0, // SND_PAIN
+	49, // SND_BODYFALL
+	49, // SND_PAIN
 	80, // SND_GETAMMO
 	49, // SND_KNIFE
 	50, // SND_GUNSHT
@@ -62,14 +62,14 @@ static const Word priorities[NUMSOUNDS] = {
 	50, // SND_FTHROW
 	49, // SND_ROCKET
 	50, // SND_PWALL
-	0, // SND_PWALL2
+	49, // SND_PWALL2
 	99, // SND_GUTEN
 	99, // SND_SHIT
 	85, // SND_HEAL
 	87, // SND_THUMBSUP
 	85, // SND_EXTRA
-	0, // SND_OUCH1
-	0, // SND_OUCH2
+	49, // SND_OUCH1
+	49, // SND_OUCH2
 	99, // SND_PDIE
 	10, // SND_HITWALL
 	49, // SND_KNIFEMISS
@@ -174,6 +174,8 @@ void PlaySound(Word SoundNum)
 	priority  = priorities[SoundNum];
 
 	if (sfxDevice == AHW_PC_SPEAKER) {
+		if (SoundNum == SND_BODYFALL || SoundNum == SND_PAIN || SoundNum == SND_PWALL2 || SoundNum == SND_OUCH1 || SoundNum == SND_OUCH2)
+			priority = 0;
 		PCFX_Play(SoundNum, priority);
 		return;
 	}
