@@ -352,32 +352,34 @@ void ReadSystemJoystick(void)
 					if (!CheatPtr[Cheat][CheatIndex]) {	/* End of the string? */
 						PlaySound(SND_BONUS);		/* I got a bonus! */
 						switch (Cheat) {		/* Execute the cheat */
-						case 1:
+						case 1: // IDDQD
 							gamestate.godmode^=TRUE;			/* I am invincible! */
 							break;
-						case 5:
+						case 5: // SEGER
 							GiveKey(0);
 							GiveKey(1);		/* Award the keys */
 							break;
-						case 6:
+						case 6: // MCCALL
 							playstate=EX_WARPED;		/* Force a jump to the next level */
 							nextmap = gamestate.mapon+1;	/* Next level */
 							if (MapListPtr->MaxMap<=nextmap) {	/* Too high? */
 								nextmap = 0;			/* Reset to zero */
 							}
 							break;
-						case 7:
+						case 7: // APPLEIIGS
 							ShowPush ^= TRUE;
 							break;
-						case 8:
+						case 8: // RATE
 							ShowFps ^= TRUE;
+							if (!ShowFps)
+								IO_DrawTreasure(gamestate.treasure);
 							break;
-						case 0:
-						case 4:
+						case 0: // XUSCNIELPPA
+						case 4: // LEDOUX
 							GiveKey(0);		/* Award the keys */
 							GiveKey(1);
 							gamestate.godmode = TRUE;			/* I am a god */
-						case 2:
+						case 2: // BURGER
 							gamestate.machinegun = TRUE;
 							gamestate.chaingun = TRUE;
 							gamestate.flamethrower = TRUE;
@@ -386,7 +388,7 @@ void ReadSystemJoystick(void)
 							GiveGas(99);
 							GiveMissile(99);
 							break;
-						case 3:
+						case 3: // WOWZERS
 							gamestate.maxammo = 999;
 							GiveAmmo(999);
 							break;
