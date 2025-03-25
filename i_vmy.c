@@ -615,7 +615,7 @@ void IO_ScaleWallColumn(Word x,Word scale,Word tile,Word column)
 	} else if (detailshift == 1) {
 		outp(SC_INDEX + 1, 3 << ((x & 1) * 2));
 	} else {
-		outp(SC_INDEX + 1, 15);
+		// Do nothing, IO_ClearViewBuffer has already set the map mask
 	}
 
 	TheFrac = ScaleDiv[scale];
@@ -707,7 +707,7 @@ void IO_ScaleMaskedColumn(Word x,Word scale,Word lumpNum,Word column)
 	} else if (detailshift == 1) {
 		outp(SC_INDEX + 1, 3 << ((x & 1) * 2));
 	} else {
-		outp(SC_INDEX + 1, 15);
+		// Do nothing, IO_ClearViewBuffer has already set the map mask
 	}
 
 	CharPtr = W_TryGetLumpByNum(lumpNum);
