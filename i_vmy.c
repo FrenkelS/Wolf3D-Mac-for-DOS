@@ -61,6 +61,7 @@ static Boolean isGraphicsModeSet = FALSE;
 
 static unsigned char __far* VideoPointer;	/* Pointer to video memory */
 static unsigned char __far* ViewPointer;
+static Word ViewPointerOffset;
 
 
 static void I_SetScreenMode(uint16_t mode)
@@ -77,7 +78,8 @@ void I_InitGraphics(void)
 	isGraphicsModeSet = TRUE;
 
 	VideoPointer = D_MK_FP(PAGE1, 0 + __djgpp_conventional_base);
-	ViewPointer = VideoPointer;
+	ViewPointerOffset = ((MAXVIEWHEIGHT - viewheight) / 2) * PLANEWIDTH + ((SCREENWIDTH - scaledviewwidth) / 4) / 2;
+	ViewPointer = VideoPointer + ViewPointerOffset;
 
 	outp(SC_INDEX, SC_MEMMODE);
 	outp(SC_INDEX + 1, (inp(SC_INDEX + 1) & ~8) | 4);
@@ -387,7 +389,8 @@ void I_SetViewSize(Word blocks)
 	scaledviewwidth = blocks * 32;
 	viewwidth  = scaledviewwidth >> detailshift;
 	viewheight = blocks * 16;
-	ViewPointer = &VideoPointer[((MAXVIEWHEIGHT - viewheight) / 2) * PLANEWIDTH + ((SCREENWIDTH - scaledviewwidth) / 4) / 2];
+	ViewPointerOffset = ((MAXVIEWHEIGHT - viewheight) / 2) * PLANEWIDTH + ((SCREENWIDTH - scaledviewwidth) / 4) / 2;
+	ViewPointer = VideoPointer + ViewPointerOffset;
 	StartupRendering();
 
 	I_ClearView();
@@ -422,7 +425,7 @@ void BlastScreen(void)
 		VideoPointer -= (0x10000 - (PAGE_SIZE << 4));
 #endif
 
-	ViewPointer = &VideoPointer[((MAXVIEWHEIGHT - viewheight) / 2) * PLANEWIDTH + ((SCREENWIDTH - scaledviewwidth) / 4) / 2];
+	ViewPointer = VideoPointer + ViewPointerOffset;
 }
 
 
