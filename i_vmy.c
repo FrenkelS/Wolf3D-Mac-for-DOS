@@ -40,7 +40,6 @@
 #define PAGE1		(PAGE0+PAGE_SIZE)
 #define PAGE2		(PAGE1+PAGE_SIZE)
 #define PAGE3		(PAGE2+PAGE_SIZE)
-#define PAGEMINUS1	(PAGE0-PAGE_SIZE)
 
 
 #define SC_INDEX                0x3c4
@@ -171,50 +170,23 @@ void DrawShapeNum(Word x, Word y, Word RezNum)
 
 void DrawRawFullScreen(Word RezNum)
 {
-	static Word cachedLumpNum;
+	const uint8_t __far* lump = W_TryGetLumpByNum(RezNum);
 
-	Word x;
-	Word y;
+	if (lump != NULL) {
+		Word plane;
+		for (plane = 0; plane < 4; plane++) {
+			Word x;
+			Word y;
+			uint8_t __far* dest = VideoPointer;
 
-	if (cachedLumpNum != RezNum) {
-		const uint8_t __far* lump = W_TryGetLumpByNum(RezNum);
-
-		if (lump != NULL) {
-			Word plane;
-			for (plane = 0; plane < 4; plane++) {
-				outp(SC_INDEX + 1, 1 << plane);
-				for (y = 0; y < SCREENHEIGHT; y++) {
-					uint8_t __far* dest = D_MK_FP(PAGE3, y * PLANEWIDTH + __djgpp_conventional_base);
-					for (x = 0; x < SCREENWIDTH / 4; x++) {
-						*dest++ = lump[y * SCREENWIDTH + (x * 4) + plane];
-					}
+			outp(SC_INDEX + 1, 1 << plane);
+			for (y = 0; y < SCREENHEIGHT; y++) {
+				for (x = 0; x < SCREENWIDTH / 4; x++) {
+					*dest++ = lump[y * SCREENWIDTH + (x * 4) + plane];
 				}
 			}
-			outp(SC_INDEX + 1, 15);
-			Z_ChangeTagToCache(lump);
-
-			cachedLumpNum = RezNum;
 		}
-	}
-
-	if (cachedLumpNum == RezNum) {
-		uint8_t __far* src  = D_MK_FP(PAGE3, 0 + __djgpp_conventional_base);
-
-		outp(SC_INDEX + 1, 15);
-
-		// set write mode 1
-		outp(GC_INDEX, GC_MODE);
-		outp(GC_INDEX + 1, inp(GC_INDEX + 1) | 1);
-
-		for (y = 0; y < SCREENHEIGHT; y++) {
-			for (x = 0; x < SCREENWIDTH / 4; x++) {
-				volatile uint8_t loadLatches = src[y * PLANEWIDTH + x];
-				VideoPointer[y * PLANEWIDTH + x] = 0;
-			}
-		}
-
-		// set write mode 0
-		outp(GC_INDEX + 1, inp(GC_INDEX + 1) & ~1);
+		Z_ChangeTagToCache(lump);
 	}
 }
 
