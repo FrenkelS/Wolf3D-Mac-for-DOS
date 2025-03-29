@@ -50,19 +50,6 @@ Watch what it looks like on a real PC [here](https://www.youtube.com/watch?v=69g
 |Resize screen        |+ & -                  |
 |Quit to DOS          |Esc & F10              |
 
-## Cheats:
-|Code       |Effects                  |
-|-----------|-------------------------|
-|XUSCNIELPPA|God mode & Weapons & Keys|
-|IDDQD      |God mode                 |
-|BURGER     |Weapons                  |
-|WOWZERS    |999 bullets              |
-|LEDOUX     |God mode & Weapons & Keys|
-|SEGER      |Keys                     |
-|MCCALL     |Exit Level               |
-|APPLEIIGS  |Show pushwalls on automap|
-|RATE       |Toggle FPS counter       |
-
 ## Command line arguments:
 |Command line argument|Effect                              |
 |---------------------|------------------------------------|
@@ -79,6 +66,22 @@ Watch what it looks like on a real PC [here](https://www.youtube.com/watch?v=69g
 |noems                |Disable EMS                         |
 |noxms                |Disable XMS                         |
 |nomouse              |Disable mouse                       |
+
+## Cheats:
+|Code       |Effects                  |
+|-----------|-------------------------|
+|XUSCNIELPPA|God mode & Weapons & Keys|
+|IDDQD      |God mode                 |
+|BURGER     |Weapons                  |
+|WOWZERS    |999 bullets              |
+|LEDOUX     |God mode & Weapons & Keys|
+|SEGER      |Keys                     |
+|MCCALL     |Exit Level               |
+|APPLEIIGS  |Show pushwalls on automap|
+|RATE       |Toggle FPS counter       |
+
+## Easter egg:
+Press B at the id Software screen.
 
 ## Building 32-bit:
 1) Install [Watcom](https://github.com/open-watcom/open-watcom-v2).
