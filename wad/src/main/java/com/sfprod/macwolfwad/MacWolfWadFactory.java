@@ -47,12 +47,16 @@ public class MacWolfWadFactory {
 
 	void createWad(Episode episode) {
 		ResourceFile resourceFile = new ResourceFile(episode);
+		ResourceFile mapResourceFile = episode.getMapInputFilename() != null
+				? new ResourceFile(episode.getMapInputFilename())
+				: null;
 
 		Type brgr = resourceFile.getType("BRGR");
+		Type mapBrgr = mapResourceFile != null ? mapResourceFile.getType("BRGR") : null;
 		wadFile = new WadFile(brgr.calculateMaxId() + 1);
-		processBurger(brgr);
+		processBurger(brgr, mapBrgr);
 
-		addMusic();
+		addMusic(episode);
 
 		processCompressedSound(resourceFile.getType("csnd"));
 		processUncompressedSound(resourceFile.getType("snd "));
@@ -62,15 +66,23 @@ public class MacWolfWadFactory {
 		// Take BJ Map from the First Encounter and put it in the Second Encounter
 		wadFile.setLump(MyBJFace, new Lump("BJ Map", getBytes("BJ Map")));
 
-		wadFile.removeLump(127); // remove New Game Pal
+		wadFile.removeLump(127); // New Game Pal
+		wadFile.removeLump(199); // Pause shape
 
 		wadFile.saveWadFile(episode);
 	}
 
-	private void processBurger(Type type) {
-		for (Resource resource : type.resourceList()) {
+	private void processBurger(Type brgr, Type mapBrgr) {
+		for (Resource resource : brgr.resourceList()) {
 			Lump lump = new Lump(resource.getName(), resource.getData());
 			wadFile.setLump(resource.id(), lump);
+		}
+
+		if (mapBrgr != null) {
+			for (Resource resource : mapBrgr.resourceList()) {
+				Lump lump = new Lump(resource.getName(), resource.getData());
+				wadFile.setLump(resource.id(), lump);
+			}
 		}
 
 		processFaceShapes();
@@ -490,17 +502,31 @@ public class MacWolfWadFactory {
 	 *      "https://www.vgmpf.com/Wiki/index.php/Wolfenstein_3D_(MAC)">Video Game
 	 *      Music Preservation Foundation - Wolfenstein 3D (MAC)</a>
 	 */
-	private void addMusic() {
+	private void addMusic(Episode episode) {
 		Lump genmidi = new Lump("GENMIDI", getBytes("GENMIDI.OP2"));
 		Lump title = new Lump("Title", getBytes("01 - Title.mid"));
 		Lump plodding = new Lump("Plodding", getBytes("02 - Plodding.mid"));
 		Lump unleashed = new Lump("Unleashed", getBytes("07 - Unleashed.mid"));
 
-		wadFile.setLump(62, createTimbreBank(genmidi));
+		wadFile.setLump(57, createTimbreBank(genmidi));
+
 		wadFile.setLump(63, plodding);
 		wadFile.setLump(64, title);
+
 		wadFile.setLump(66, unleashed);
 		wadFile.setLump(68, title);
+
+		if (episode == Episode.SECOND_ENCOUNTER) {
+			Lump rocked = new Lump("Rocked", getBytes("03 - Rocked.mid"));
+			Lump original = new Lump("Original", getBytes("04 - Original.mid"));
+			Lump doom = new Lump("Doom", getBytes("05 - Doom.mid"));
+			Lump grunge = new Lump("Grunge", getBytes("06 - Grunge.mid"));
+
+			wadFile.setLump(58, rocked);
+			wadFile.setLump(59, original);
+			wadFile.setLump(60, doom);
+			wadFile.setLump(65, grunge);
+		}
 
 		Lump songList = wadFile.getLump(rSongList);
 		for (int i = 0; i < songList.length(); i += 2) {

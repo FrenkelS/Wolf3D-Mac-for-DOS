@@ -42,11 +42,6 @@
 #include "z_zone.h"
 
 
-#if !defined WAD_FILE
-#define WAD_FILE "MACWOLF1.WAD"
-#endif
-
-
 //
 // TYPES
 //
@@ -119,7 +114,7 @@ static Boolean W_LoadWADIntoXMS(void)
 		return FALSE;
 	}
 
-	printf("Loading " WAD_FILE " into XMS\n");
+	printf("Loading WAD file into XMS\n");
 	printf("Get Psyched!\n");
 
 	fseek(fileWAD, 0, SEEK_SET);
@@ -167,11 +162,18 @@ void W_Init(void)
 	Boolean xms;
 	wadinfo_t header;
 
-	fileWAD = fopen(WAD_FILE, "rb");
-	if (fileWAD == NULL)
-		I_Error("Can't open " WAD_FILE ".");
-
-	printf("First Encounter\n");
+	fileWAD = fopen("MACWOLF2.WAD", "rb");
+	if (fileWAD != NULL) {
+		printf("Second");
+	} else {
+		fileWAD = fopen("MACWOLF1.WAD", "rb");
+		if (fileWAD != NULL) {
+			printf("First");
+		} else {
+			I_Error("Can't open WAD file.");
+		}
+	}
+	printf(" Encounter\n");
 
 	xms = W_LoadWADIntoXMS();
 	readfunc = xms ? Z_MoveExtendedMemoryToConventionalMemory : W_ReadDataFromFile;

@@ -24,7 +24,7 @@ class MacWolfWadFactoryTest {
 		CRC32 crc32 = new CRC32();
 		crc32.update(Files.readAllBytes(Path.of("target", episode.getOutputFilename())));
 
-		assertEquals("5C17472C", Long.toHexString(crc32.getValue()).toUpperCase());
+		assertEquals("FC1DC2A5", Long.toHexString(crc32.getValue()).toUpperCase());
 	}
 
 	@Test
@@ -39,6 +39,6 @@ class MacWolfWadFactoryTest {
 		CRC32 crc32 = new CRC32();
 		crc32.update(Files.readAllBytes(Path.of("target", episode.getOutputFilename())));
 
-		assertEquals("F253A9BE", Long.toHexString(crc32.getValue()).toUpperCase());
+		assertEquals("474E6AB3", Long.toHexString(crc32.getValue()).toUpperCase());
 	}
 }

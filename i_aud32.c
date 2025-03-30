@@ -107,7 +107,7 @@ void I_InitSound(void)
 			}
 			musicDevice = AHW_MPU_401;
 		} else if (!M_CheckParm("noal") && AL_DetectFM()) {
-			uint8_t __far* genmidi = W_GetLumpByNum(62);
+			uint8_t __far* genmidi = W_GetLumpByNum(57);
 			AL_RegisterTimbreBank(genmidi);
 			Z_Free(genmidi);
 			musicDevice = AHW_ADLIB;
