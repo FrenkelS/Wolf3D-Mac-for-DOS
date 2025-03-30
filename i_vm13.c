@@ -447,11 +447,54 @@ static void ScaleGlueHigh(Word fracstep, Word frac, Word count)
 	Byte __far* ArtPtr    = source;
 	Byte __far* ScreenPtr = dest;
 
+#if 1
+	Word l = count >> 4;
+	while (l--) {
+		*ScreenPtr = ArtPtr[frac >> COLBITS]; ScreenPtr += PLANEWIDTH; frac += fracstep;
+		*ScreenPtr = ArtPtr[frac >> COLBITS]; ScreenPtr += PLANEWIDTH; frac += fracstep;
+		*ScreenPtr = ArtPtr[frac >> COLBITS]; ScreenPtr += PLANEWIDTH; frac += fracstep;
+		*ScreenPtr = ArtPtr[frac >> COLBITS]; ScreenPtr += PLANEWIDTH; frac += fracstep;
+
+		*ScreenPtr = ArtPtr[frac >> COLBITS]; ScreenPtr += PLANEWIDTH; frac += fracstep;
+		*ScreenPtr = ArtPtr[frac >> COLBITS]; ScreenPtr += PLANEWIDTH; frac += fracstep;
+		*ScreenPtr = ArtPtr[frac >> COLBITS]; ScreenPtr += PLANEWIDTH; frac += fracstep;
+		*ScreenPtr = ArtPtr[frac >> COLBITS]; ScreenPtr += PLANEWIDTH; frac += fracstep;
+
+		*ScreenPtr = ArtPtr[frac >> COLBITS]; ScreenPtr += PLANEWIDTH; frac += fracstep;
+		*ScreenPtr = ArtPtr[frac >> COLBITS]; ScreenPtr += PLANEWIDTH; frac += fracstep;
+		*ScreenPtr = ArtPtr[frac >> COLBITS]; ScreenPtr += PLANEWIDTH; frac += fracstep;
+		*ScreenPtr = ArtPtr[frac >> COLBITS]; ScreenPtr += PLANEWIDTH; frac += fracstep;
+
+		*ScreenPtr = ArtPtr[frac >> COLBITS]; ScreenPtr += PLANEWIDTH; frac += fracstep;
+		*ScreenPtr = ArtPtr[frac >> COLBITS]; ScreenPtr += PLANEWIDTH; frac += fracstep;
+		*ScreenPtr = ArtPtr[frac >> COLBITS]; ScreenPtr += PLANEWIDTH; frac += fracstep;
+		*ScreenPtr = ArtPtr[frac >> COLBITS]; ScreenPtr += PLANEWIDTH; frac += fracstep;
+	}
+
+	switch (count & 15) {
+		case 15: *ScreenPtr = ArtPtr[frac >> COLBITS]; ScreenPtr += PLANEWIDTH; frac += fracstep;
+		case 14: *ScreenPtr = ArtPtr[frac >> COLBITS]; ScreenPtr += PLANEWIDTH; frac += fracstep;
+		case 13: *ScreenPtr = ArtPtr[frac >> COLBITS]; ScreenPtr += PLANEWIDTH; frac += fracstep;
+		case 12: *ScreenPtr = ArtPtr[frac >> COLBITS]; ScreenPtr += PLANEWIDTH; frac += fracstep;
+		case 11: *ScreenPtr = ArtPtr[frac >> COLBITS]; ScreenPtr += PLANEWIDTH; frac += fracstep;
+		case 10: *ScreenPtr = ArtPtr[frac >> COLBITS]; ScreenPtr += PLANEWIDTH; frac += fracstep;
+		case  9: *ScreenPtr = ArtPtr[frac >> COLBITS]; ScreenPtr += PLANEWIDTH; frac += fracstep;
+		case  8: *ScreenPtr = ArtPtr[frac >> COLBITS]; ScreenPtr += PLANEWIDTH; frac += fracstep;
+		case  7: *ScreenPtr = ArtPtr[frac >> COLBITS]; ScreenPtr += PLANEWIDTH; frac += fracstep;
+		case  6: *ScreenPtr = ArtPtr[frac >> COLBITS]; ScreenPtr += PLANEWIDTH; frac += fracstep;
+		case  5: *ScreenPtr = ArtPtr[frac >> COLBITS]; ScreenPtr += PLANEWIDTH; frac += fracstep;
+		case  4: *ScreenPtr = ArtPtr[frac >> COLBITS]; ScreenPtr += PLANEWIDTH; frac += fracstep;
+		case  3: *ScreenPtr = ArtPtr[frac >> COLBITS]; ScreenPtr += PLANEWIDTH; frac += fracstep;
+		case  2: *ScreenPtr = ArtPtr[frac >> COLBITS]; ScreenPtr += PLANEWIDTH; frac += fracstep;
+		case  1: *ScreenPtr = ArtPtr[frac >> COLBITS];
+	}
+#else
 	while (count--) {
 		*ScreenPtr = ArtPtr[frac >> COLBITS];
 		ScreenPtr += PLANEWIDTH;
 		frac += fracstep;
 	}
+#endif
 }
 
 static void ScaleGlueLow(Word fracstep, Word frac, Word count)
