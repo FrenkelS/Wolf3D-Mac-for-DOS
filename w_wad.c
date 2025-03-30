@@ -114,7 +114,6 @@ static Boolean W_LoadWADIntoXMS(void)
 		return FALSE;
 	}
 
-	printf("Loading WAD file into XMS\n");
 	printf("Get Psyched!\n");
 
 	fseek(fileWAD, 0, SEEK_SET);
