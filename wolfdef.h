@@ -548,8 +548,7 @@ typedef struct {
 extern void InitTools(void);
 extern void BlastScreen(void);
 extern void BlastScreen2(Rect *BlastRect);
-extern void BlastView(void);
-extern void BlastStatusBar(void);
+extern void BlastView(Boolean refreshStatusBar);
 extern void DoMacEvents(void);
 extern void GoodBye(void);
 extern void ReadSystemJoystick(void);

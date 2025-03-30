@@ -13,7 +13,7 @@ static Boolean refreshStatusBar;
 	
 **********************************/
 
-static LongWord W_pow10[] = {1,10,100,1000,10000,100000,1000000};
+static LongWord w_pow10[] = {1,10,100,1000,10000,100000,1000000};
 Word NumberIndex = 36;		/* First number in the shape list... */
 
 void SetNumber(LongWord number,Word x,Word y,Word digits)
@@ -25,7 +25,7 @@ void SetNumber(LongWord number,Word x,Word y,Word digits)
     empty = 1;			/* No char's drawn yet */
     while (digits) {	/* Any digits left? */
          count = 0;		/* No value yet */
-         val = W_pow10[digits-1];	/* Get the power of 10 */
+         val = w_pow10[digits-1];	/* Get the power of 10 */
          while (number >= val) {	/* Any value here? */
              count++;		/* +1 to the count */
              number -= val;		/* Remove the value */
@@ -236,12 +236,8 @@ void IO_DrawStatusBar(void)
 
 void IO_DisplayViewBuffer (void)
 {
-	BlastView();
-
-	if (refreshStatusBar) {
-		refreshStatusBar = FALSE;
-		BlastStatusBar();
-	}
+	BlastView(refreshStatusBar);
+	refreshStatusBar = FALSE;
 
 /* if this is the first frame rendered, upload everything and fade in */
     if (firstframe) { 

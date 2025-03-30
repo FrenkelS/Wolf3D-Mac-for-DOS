@@ -401,15 +401,10 @@ void BlastScreen(void)
 }
 
 
-void BlastView(void)
+void BlastView(Boolean refreshStatusBar)
 {
+	UNUSED(refreshStatusBar);
 	BlastScreen();
-}
-
-
-void BlastStatusBar(void)
-{
-	// Do nothing
 }
 
 

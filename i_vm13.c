@@ -290,20 +290,17 @@ void BlastScreen(void)
 }
 
 
-void BlastView(void)
+#define ST_HEIGHT 40
+
+void BlastView(Boolean refreshStatusBar)
 {
 	Word y;
 
 	for (y = 0; y < viewheight; y++)
 		_fmemcpy(&viewvideomemory[y * PLANEWIDTH], &ViewPointer[y * PLANEWIDTH], scaledviewwidth);
-}
 
-
-#define ST_HEIGHT 40
-
-void BlastStatusBar(void)
-{
-	_fmemcpy(&videomemory[1u * MAXVIEWHEIGHT * PLANEWIDTH], &VideoPointer[1u * MAXVIEWHEIGHT * PLANEWIDTH], SCREENWIDTH * ST_HEIGHT);
+	if (refreshStatusBar)
+		_fmemcpy(&videomemory[1u * MAXVIEWHEIGHT * PLANEWIDTH], &VideoPointer[1u * MAXVIEWHEIGHT * PLANEWIDTH], SCREENWIDTH * ST_HEIGHT);		
 }
 
 
