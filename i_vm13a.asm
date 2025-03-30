@@ -30,23 +30,41 @@ PLANEWIDTH equ 320
 extern source
 extern dest
 
-last_pixel_jump_table:
-	dw last_pixel0,
-	dw last_pixel1,
-	dw last_pixel2,
-	dw last_pixel3,
-	dw last_pixel4,
-	dw last_pixel5,
-	dw last_pixel6,
-	dw last_pixel7,
-	dw last_pixel8,
-	dw last_pixel9,
-	dw last_pixel10,
-	dw last_pixel11,
-	dw last_pixel12,
-	dw last_pixel13,
-	dw last_pixel14,
-	dw last_pixel15
+last_pixel_high_jump_table:
+	dw last_pixel_high_0,
+	dw last_pixel_high_1,
+	dw last_pixel_high_2,
+	dw last_pixel_high_3,
+	dw last_pixel_high_4,
+	dw last_pixel_high_5,
+	dw last_pixel_high_6,
+	dw last_pixel_high_7,
+	dw last_pixel_high_8,
+	dw last_pixel_high_9,
+	dw last_pixel_high_10,
+	dw last_pixel_high_11,
+	dw last_pixel_high_12,
+	dw last_pixel_high_13,
+	dw last_pixel_high_14,
+	dw last_pixel_high_15
+
+last_pixel_low_jump_table:
+	dw last_pixel_low_0,
+	dw last_pixel_low_1,
+	dw last_pixel_low_2,
+	dw last_pixel_low_3,
+	dw last_pixel_low_4,
+	dw last_pixel_low_5,
+	dw last_pixel_low_6,
+	dw last_pixel_low_7,
+	dw last_pixel_low_8,
+	dw last_pixel_low_9,
+	dw last_pixel_low_10,
+	dw last_pixel_low_11,
+	dw last_pixel_low_12,
+	dw last_pixel_low_13,
+	dw last_pixel_low_14,
+	dw last_pixel_low_15
 
 ;
 ; input:
@@ -80,9 +98,9 @@ ScaleGlueHigh:
 	mov si, PLANEWIDTH - 1
 
 	or ah, ah						; if ah = 0
-	jz last_pixels					;  then jump to last_pixels
+	jz last_pixels_high				;  then jump to last_pixels_high
 
-loop_pixels:
+loop_pixels_high:
 	mov al, dh						; al = hi byte of frac
 	xlat							; al = source[al]
 	stosb							; write pixel
@@ -180,123 +198,412 @@ loop_pixels:
 	add dx, bp
 
 	dec ah
-	jnz loop_pixels					; if --ah != 0 then jump to loop_pixels
+	jnz loop_pixels_high			; if --ah != 0 then jump to loop_pixels_high
 
 
-last_pixels:
+last_pixels_high:
 	xchg ax, bx						; ax = source
 	mov bx, cx						; bx = count
 	and bl, 15						; 0 <= count <= 15
 	shl bl, 1
-	mov cx, cs:last_pixel_jump_table[bx]
+	mov cx, cs:last_pixel_high_jump_table[bx]
 	xchg ax, bx						; bx = source
 	jmp cx
 
 
-last_pixel15:
+last_pixel_high_15:
 	mov al, dh
 	xlat
 	stosb
 	add di, si
 	add dx, bp
 
-last_pixel14:
+last_pixel_high_14:
 	mov al, dh
 	xlat
 	stosb
 	add di, si
 	add dx, bp
 
-last_pixel13:
+last_pixel_high_13:
 	mov al, dh
 	xlat
 	stosb
 	add di, si
 	add dx, bp
 
-last_pixel12:
+last_pixel_high_12:
 	mov al, dh
 	xlat
 	stosb
 	add di, si
 	add dx, bp
 
-last_pixel11:
+last_pixel_high_11:
 	mov al, dh
 	xlat
 	stosb
 	add di, si
 	add dx, bp
 
-last_pixel10:
+last_pixel_high_10:
 	mov al, dh
 	xlat
 	stosb
 	add di, si
 	add dx, bp
 
-last_pixel9:
+last_pixel_high_9:
 	mov al, dh
 	xlat
 	stosb
 	add di, si
 	add dx, bp
 
-last_pixel8:
+last_pixel_high_8:
 	mov al, dh
 	xlat
 	stosb
 	add di, si
 	add dx, bp
 
-last_pixel7:
+last_pixel_high_7:
 	mov al, dh
 	xlat
 	stosb
 	add di, si
 	add dx, bp
 
-last_pixel6:
+last_pixel_high_6:
 	mov al, dh
 	xlat
 	stosb
 	add di, si
 	add dx, bp
 
-last_pixel5:
+last_pixel_high_5:
 	mov al, dh
 	xlat
 	stosb
 	add di, si
 	add dx, bp
 
-last_pixel4:
+last_pixel_high_4:
 	mov al, dh
 	xlat
 	stosb
 	add di, si
 	add dx, bp
 
-last_pixel3:
+last_pixel_high_3:
 	mov al, dh
 	xlat
 	stosb
 	add di, si
 	add dx, bp
 
-last_pixel2:
+last_pixel_high_2:
 	mov al, dh
 	xlat
 	stosb
 	add di, si
 	add dx, bp
 
-last_pixel1:
+last_pixel_high_1:
 	mov al, dh
 	xlat
 	stosb
 
-last_pixel0:
+last_pixel_high_0:
+	pop bp
+	pop es
+	pop di
+	pop si
+	mov ax, ss
+	mov ds, ax
+	ret
+
+
+;
+; input:
+;   ax = fracstep
+;   dx = frac
+;   cx = count		1 <= count <= 160	=>	ch = 0
+;
+
+global ScaleGlueLow
+ScaleGlueLow:
+	push si
+	push di
+	push es
+	push bp
+
+	xchg bp, ax						; bp = fracstep
+
+	mov ch, cl						; 1 <= ch <= 160
+%ifidn CPU, i8088
+	shr ch, 1
+	shr ch, 1
+	shr ch, 1
+	shr ch, 1						; 0 <= ah <= 10
+%else
+	shr ch, 4						; 0 <= ah <= 10
+%endif
+
+	les di, [dest]					; es:di = dest
+	lds bx, [source]				; ds:bx = source
+
+	mov si, PLANEWIDTH - 2
+
+	or ch, ch						; if ch = 0
+	jz last_pixels_low				;  then jump to last_pixels_low
+
+loop_pixels_low:
+	mov al, dh						; al = hi byte of frac
+	xlat							; al = source[al]
+	mov ah, al						; ax = source[al]
+	stosw							; write pixel
+	add di, si						; point to next line
+	add dx, bp						; frac += fracstep
+
+	mov al, dh
+	xlat
+	mov ah, al
+	stosw
+	add di, si
+	add dx, bp
+
+	mov al, dh
+	xlat
+	mov ah, al
+	stosw
+	add di, si
+	add dx, bp
+
+	mov al, dh
+	xlat
+	mov ah, al
+	stosw
+	add di, si
+	add dx, bp
+
+	mov al, dh
+	xlat
+	mov ah, al
+	stosw
+	add di, si
+	add dx, bp
+
+	mov al, dh
+	xlat
+	mov ah, al
+	stosw
+	add di, si
+	add dx, bp
+
+	mov al, dh
+	xlat
+	mov ah, al
+	stosw
+	add di, si
+	add dx, bp
+
+	mov al, dh
+	xlat
+	mov ah, al
+	stosw
+	add di, si
+	add dx, bp
+
+	mov al, dh
+	xlat
+	mov ah, al
+	stosw
+	add di, si
+	add dx, bp
+
+	mov al, dh
+	xlat
+	mov ah, al
+	stosw
+	add di, si
+	add dx, bp
+
+	mov al, dh
+	xlat
+	mov ah, al
+	stosw
+	add di, si
+	add dx, bp
+
+	mov al, dh
+	xlat
+	mov ah, al
+	stosw
+	add di, si
+	add dx, bp
+
+	mov al, dh
+	xlat
+	mov ah, al
+	stosw
+	add di, si
+	add dx, bp
+
+	mov al, dh
+	xlat
+	mov ah, al
+	stosw
+	add di, si
+	add dx, bp
+
+	mov al, dh
+	xlat
+	mov ah, al
+	stosw
+	add di, si
+	add dx, bp
+
+	mov al, dh
+	xlat
+	mov ah, al
+	stosw
+	add di, si
+	add dx, bp
+
+	dec ch
+	jnz loop_pixels_low				; if --ch != 0 then jump to loop_pixels_low
+
+
+last_pixels_low:
+	xchg ax, bx						; ax = source
+	mov bx, cx						; bx = count
+	and bl, 15						; 0 <= count <= 15
+	shl bl, 1
+	mov cx, cs:last_pixel_low_jump_table[bx]
+	xchg ax, bx						; bx = source
+	jmp cx
+
+
+last_pixel_low_15:
+	mov al, dh
+	xlat
+	mov ah, al
+	stosw
+	add di, si
+	add dx, bp
+
+last_pixel_low_14:
+	mov al, dh
+	xlat
+	mov ah, al
+	stosw
+	add di, si
+	add dx, bp
+
+last_pixel_low_13:
+	mov al, dh
+	xlat
+	mov ah, al
+	stosw
+	add di, si
+	add dx, bp
+
+last_pixel_low_12:
+	mov al, dh
+	xlat
+	mov ah, al
+	stosw
+	add di, si
+	add dx, bp
+
+last_pixel_low_11:
+	mov al, dh
+	xlat
+	mov ah, al
+	stosw
+	add di, si
+	add dx, bp
+
+last_pixel_low_10:
+	mov al, dh
+	xlat
+	mov ah, al
+	stosw
+	add di, si
+	add dx, bp
+
+last_pixel_low_9:
+	mov al, dh
+	xlat
+	mov ah, al
+	stosw
+	add di, si
+	add dx, bp
+
+last_pixel_low_8:
+	mov al, dh
+	xlat
+	mov ah, al
+	stosw
+	add di, si
+	add dx, bp
+
+last_pixel_low_7:
+	mov al, dh
+	xlat
+	mov ah, al
+	stosw
+	add di, si
+	add dx, bp
+
+last_pixel_low_6:
+	mov al, dh
+	xlat
+	mov ah, al
+	stosw
+	add di, si
+	add dx, bp
+
+last_pixel_low_5:
+	mov al, dh
+	xlat
+	mov ah, al
+	stosw
+	add di, si
+	add dx, bp
+
+last_pixel_low_4:
+	mov al, dh
+	xlat
+	mov ah, al
+	stosw
+	add di, si
+	add dx, bp
+
+last_pixel_low_3:
+	mov al, dh
+	xlat
+	mov ah, al
+	stosw
+	add di, si
+	add dx, bp
+
+last_pixel_low_2:
+	mov al, dh
+	xlat
+	mov ah, al
+	stosw
+	add di, si
+	add dx, bp
+
+last_pixel_low_1:
+	mov al, dh
+	xlat
+	mov ah, al
+	stosw
+
+last_pixel_low_0:
 	pop bp
 	pop es
 	pop di

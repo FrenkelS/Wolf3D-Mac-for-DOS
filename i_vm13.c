@@ -497,9 +497,6 @@ static void ScaleGlueHigh(Word fracstep, Word frac, Word count)
 	}
 #endif
 }
-#else
-void ScaleGlueHigh(Word fracstep, Word frac, Word count);
-#endif
 
 
 static void ScaleGlueLow(Word fracstep, Word frac, Word count)
@@ -515,6 +512,11 @@ static void ScaleGlueLow(Word fracstep, Word frac, Word count)
 		frac += fracstep;
 	}
 }
+#else
+void ScaleGlueHigh(Word fracstep, Word frac, Word count);
+void ScaleGlueLow(Word fracstep, Word frac, Word count);
+#endif
+
 
 static void ScaleGluePotato(Word fracstep, Word frac, Word count)
 {
