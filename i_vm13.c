@@ -400,7 +400,7 @@ Byte __far* source;
 Byte __far* dest;
 
 
-static void ScaleGlueFlat(Byte Art,Word MaxLines)
+static void ScaleGlueFlat(Byte Art, Word count)
 {
 	uint16_t src16;
 	uint32_t src32;
@@ -409,7 +409,7 @@ static void ScaleGlueFlat(Byte Art,Word MaxLines)
 
 	switch (detailshift) {
 	case 0:
-		while (MaxLines--) {
+		while (count--) {
 			*ScreenPtr = Art;
 			ScreenPtr += PLANEWIDTH;
 		}
@@ -417,7 +417,7 @@ static void ScaleGlueFlat(Byte Art,Word MaxLines)
 	case 1:
 		src16 = Art;
 		src16 |= src16 << 8;
-		while (MaxLines--) {
+		while (count--) {
 			*(uint16_t __far*)ScreenPtr = src16;
 			ScreenPtr += PLANEWIDTH;
 		}
@@ -426,7 +426,7 @@ static void ScaleGlueFlat(Byte Art,Word MaxLines)
 		src32 = Art;
 		src32 |= src32 << 8;
 		src32 |= src32 << 16;
-		while (MaxLines--) {
+		while (count--) {
 			*(uint32_t __far*)ScreenPtr = src32;
 			ScreenPtr += PLANEWIDTH;
 		}
@@ -435,39 +435,43 @@ static void ScaleGlueFlat(Byte Art,Word MaxLines)
 }
 
 
-static void ScaleGlue(Word MaxLines,LongWord Frac,Word Integer,LongWord Delta)
+#if defined _M_I86
+#define COLBITS 8
+#else
+#define COLBITS 16
+#endif
+
+
+static void ScaleGlue(Word fracstep, Word frac, Word count)
 {
 	Byte __far* ArtPtr    = source;
 	Byte __far* ScreenPtr = dest;
 
 	switch (detailshift) {
 	case 0:
-		while (MaxLines--) {
-			*ScreenPtr = *ArtPtr;
+		while (count--) {
+			*ScreenPtr = ArtPtr[frac >> COLBITS];
 			ScreenPtr += PLANEWIDTH;
-			Delta += Frac;
-			ArtPtr += Integer + (Delta < Frac);
+			frac += fracstep;
 		}
 		break;
 	case 1:
-		while (MaxLines--) {
-			uint16_t src = *ArtPtr;
+		while (count--) {
+			uint16_t src = ArtPtr[frac >> COLBITS];
 			src |= src << 8;
 			*(uint16_t __far*)ScreenPtr = src;
 			ScreenPtr += PLANEWIDTH;
-			Delta += Frac;
-			ArtPtr += Integer + (Delta < Frac);
+			frac += fracstep;
 		}
 		break;
 	case 2:
-		while (MaxLines--) {
-			uint32_t src = *ArtPtr;
+		while (count--) {
+			uint32_t src = ArtPtr[frac >> COLBITS];
 			src |= src << 8;
 			src |= src << 16;
 			*(uint32_t __far*)ScreenPtr = src;
 			ScreenPtr += PLANEWIDTH;
-			Delta += Frac;
-			ArtPtr += Integer + (Delta < Frac);
+			frac += fracstep;
 		}
 		break;
 	}
@@ -502,20 +506,36 @@ void IO_ScaleWallColumn(Word x,Word scale,Word tile,Word column)
 	} else {
 		if (scale <= viewheight) {
 			source = &lump[(column & 127) << 7];
-			ScaleGlue(scale,
-				TheFrac << 8,	/* Fractional value */
-				TheFrac >> 24,	/* Integer value */
-				0
+#if defined _M_I86
+			ScaleGlue(
+				TheFrac >> 16,	/* Integer value + Fractional value */
+				0,
+				scale
 			);
+#else
+			ScaleGlue(
+				TheFrac >> 8,	/* Integer value + Fractional value */
+				0,
+				scale
+			);
+#endif
 		} else {
 			Word y = (scale - viewheight) / 2;		/* How many lines to remove */
 			LongWord ly = y * TheFrac;
 			source = &lump[((column & 127) << 7) + (Word)(ly >> 24)];
-			ScaleGlue(viewheight,
-				TheFrac << 8,	/* Fractional value */
-				TheFrac >> 24,	/* Integer value */
-				ly << 8
+#if defined _M_I86
+			ScaleGlue(
+				TheFrac >> 16,	/* Integer value + Fractional value */
+				(Word)(ly >> 8) >> COLBITS,
+				viewheight
 			);
+#else
+			ScaleGlue(
+				TheFrac >> 8,	/* Integer value + Fractional value */
+				(Word)(ly << 8) >> COLBITS,
+				viewheight
+			);
+#endif	
 		}
 		Z_ChangeTagToCache(lump);
 	}
@@ -542,8 +562,6 @@ void IO_ScaleMaskedColumn(Word x,Word scale,Word lumpNum,Word column)
 	Byte __far* Screenad;
 	SpriteRun __far* RunPtr;
 	LongWord TheFrac;
-	LongWord TFrac;
-	Word TInt;
 	Word RunCount;
 	int TopY;
 	Word Index;
@@ -568,8 +586,6 @@ void IO_ScaleMaskedColumn(Word x,Word scale,Word lumpNum,Word column)
 		TheFrac = ScaleDiv[scale];		/* Get the scale fraction */ 
 		RunPtr = (SpriteRun __far*) &CharPtr[CharPtr[column+1]/2];	/* Get the offset to the RunPtr data */
 		Screenad = &ViewPointer[x << detailshift];		/* Set the base screen address */
-		TFrac = TheFrac<<8;
-		TInt = TheFrac>>24;
 		TopY = (viewheight/2)-scale;		/* Number of pixels for 128 pixel shape */
 
 		while (RunPtr->Topy != (unsigned short) -1) {		/* Not end of record? */
@@ -585,19 +601,31 @@ void IO_ScaleMaskedColumn(Word x,Word scale,Word lumpNum,Word column)
 					if (Y1<0) {
 						Delta = (0-(Word)Y1)*TheFrac;
 						Index += (Delta>>24);
+#if defined _M_I86
+						Delta >>= 8;
+#else
 						Delta <<= 8;
+#endif
+						Delta = (Word)Delta >> COLBITS;
 						Y1 = 0;
 					}
 					RunCount = Y2-Y1;
 					if (RunCount) {
-						source = &CharPtr2[Index],	/* Pointer to art data */
+						source = &CharPtr2[Index];	/* Pointer to art data */
 						dest   = &Screenad[Y1 * PLANEWIDTH];			/* Pointer to screen */
+#if defined _M_I86
 						ScaleGlue(
-						RunCount,			/* Number of lines to draw */
-						TFrac,				/* Fractional value */ 
-						TInt,				/* Integer value */
-						Delta					/* Delta value */
+						TheFrac >> 16,				/* Integer value + Fractional value */ 
+						Delta,					/* Delta value */
+						RunCount			/* Number of lines to draw */
 						);
+#else
+						ScaleGlue(
+						TheFrac >> 8,				/* Integer value + Fractional value */ 
+						Delta,					/* Delta value */
+						RunCount			/* Number of lines to draw */
+						);
+#endif
 					}
 				}
 			} 

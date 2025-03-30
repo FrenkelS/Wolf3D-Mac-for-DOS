@@ -640,7 +640,7 @@ void IO_ScaleWallColumn(Word x,Word scale,Word tile,Word column)
 			);
 #endif
 		} else {
-			Word y = (scale - viewheight) / 2;		/* How manu lines to remove */
+			Word y = (scale - viewheight) / 2;		/* How many lines to remove */
 			LongWord ly = y * TheFrac;
 			source = &lump[((column & 127) << 7) + (Word)(ly >> 24)];
 #if defined _M_I86
@@ -739,8 +739,8 @@ void IO_ScaleMaskedColumn(Word x,Word scale,Word lumpNum,Word column)
 					}
 					RunCount = Y2 - Y1;
 					if (RunCount) {
-						source = &CharPtr2[Index],	/* Pointer to art data */
-						dest   = &Screenad[Y1 * PLANEWIDTH],			/* Pointer to screen */
+						source = &CharPtr2[Index];	/* Pointer to art data */
+						dest   = &Screenad[Y1 * PLANEWIDTH];			/* Pointer to screen */
 #if defined _M_I86
 						ScaleGlue(
 						TheFrac >> 16,				/* Integer value + Fractional value */ 
