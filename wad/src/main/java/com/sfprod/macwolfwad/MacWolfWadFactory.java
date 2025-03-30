@@ -19,6 +19,7 @@ public class MacWolfWadFactory {
 	private static final int MySoundList = 135; /* List of sound effects to log */
 	private static final int MyDarkData = 136; /* 256 byte table to darken walls */
 	private static final int MyWallList = 137; /* All wall shapes */
+	private static final int MyBJFace = 138; /* BJ's face for automap */
 	private static final int rIntermission = 139; /* Intermission background */
 	private static final int rInterPics = 141; /* BJ's intermission pictures */
 	private static final int rFaceShapes = 142; /* All the permanent game shapes */
@@ -57,6 +58,9 @@ public class MacWolfWadFactory {
 		processUncompressedSound(resourceFile.getType("snd "));
 		wadFile.removeLump(MySoundList);
 		addPcSpeakerSoundEffects();
+
+		// Take BJ Map from the First Encounter and put it in the Second Encounter
+		wadFile.setLump(MyBJFace, new Lump("BJ Map", getBytes("BJ Map")));
 
 		wadFile.removeLump(127); // remove New Game Pal
 
