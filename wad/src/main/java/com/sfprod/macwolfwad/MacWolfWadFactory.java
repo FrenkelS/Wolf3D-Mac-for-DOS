@@ -47,12 +47,9 @@ public class MacWolfWadFactory {
 
 	void createWad(Episode episode) {
 		ResourceFile resourceFile = new ResourceFile(episode);
-		ResourceFile mapResourceFile = episode.getMapInputFilename() != null
-				? new ResourceFile(episode.getMapInputFilename())
-				: null;
 
 		Type brgr = resourceFile.getType("BRGR");
-		Type mapBrgr = mapResourceFile != null ? mapResourceFile.getType("BRGR") : null;
+		Type mapBrgr = getMapBrgr(episode);
 		wadFile = new WadFile(brgr.calculateMaxId() + 1);
 		processBurger(brgr, mapBrgr);
 
@@ -70,6 +67,15 @@ public class MacWolfWadFactory {
 		wadFile.removeLump(199); // Pause shape
 
 		wadFile.saveWadFile(episode);
+	}
+
+	private Type getMapBrgr(Episode episode) {
+		if (episode.getMapInputFilename() == null) {
+			return null;
+		}
+
+		ResourceFile resourceFile = new ResourceFile(episode.getMapInputFilename());
+		return resourceFile.getType("BRGR");
 	}
 
 	private void processBurger(Type brgr, Type mapBrgr) {
