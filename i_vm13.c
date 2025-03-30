@@ -396,10 +396,16 @@ void SetupScalers(void)
 	
 **********************************/
 
-static void ScaleGlueFlat(Byte Art,Word MaxLines,Byte __far* ScreenPtr)
+//Byte __far* source;
+Byte __far* dest;
+
+
+static void ScaleGlueFlat(Byte Art,Word MaxLines)
 {
 	uint16_t src16;
 	uint32_t src32;
+
+	Byte __far* ScreenPtr = dest;
 
 	switch (detailshift) {
 	case 0:
@@ -481,12 +487,14 @@ void IO_ScaleWallColumn(Word x,Word scale,Word tile,Word column)
 
 	lump = W_TryGetLumpByNum(ArtData[tile]);
 	if (!lump) {
-		if (scale<viewheight) {
+		if (scale < viewheight) {
 			y = (viewheight-scale)/2;
-			ScaleGlueFlat(tile, scale,      &ViewPointer[(y * PLANEWIDTH) + (x << detailshift)]);
+			dest = &ViewPointer[(y * PLANEWIDTH) + (x << detailshift)];
 		} else {
-			ScaleGlueFlat(tile, viewheight, &ViewPointer[x << detailshift]);
+			scale = viewheight;
+			dest = &ViewPointer[x << detailshift];
 		}
+		ScaleGlueFlat(tile, scale);
 	} else {
 		ArtStart = &lump[(column&127)<<7];
 		if (scale<viewheight) {
@@ -546,12 +554,14 @@ void IO_ScaleMaskedColumn(Word x,Word scale,Word lumpNum,Word column)
 
 	CharPtr = W_TryGetLumpByNum(lumpNum);
 	if (!CharPtr) {
-		if (scale<viewheight) {
+		if (scale < viewheight) {
 			Word y = (viewheight-scale)/2;
-			ScaleGlueFlat(lumpNum, scale,      &ViewPointer[(y * PLANEWIDTH) + (x << detailshift)]);
+			dest = &ViewPointer[(y * PLANEWIDTH) + (x << detailshift)];
 		} else {
-			ScaleGlueFlat(lumpNum, viewheight, &ViewPointer[x << detailshift]);
+			scale = viewheight;
+			dest = &ViewPointer[x << detailshift];
 		}
+		ScaleGlueFlat(lumpNum, scale);
 	} else {
 		CharPtr2 = (Byte __far*) CharPtr;
 		TheFrac = ScaleDiv[scale];		/* Get the scale fraction */ 
