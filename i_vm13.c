@@ -503,14 +503,60 @@ static void ScaleGlueLow(Word fracstep, Word frac, Word count)
 {
 	Byte __far* ArtPtr    = source;
 	Byte __far* ScreenPtr = dest;
+	uint16_t src;
 
+#if defined __IA16_SYS_MSDOS
 	while (count--) {
-		uint16_t src = ArtPtr[frac >> COLBITS];
+		src = ArtPtr[frac >> COLBITS];
 		src |= src << 8;
 		*(uint16_t __far*)ScreenPtr = src;
 		ScreenPtr += PLANEWIDTH;
 		frac += fracstep;
 	}
+#else
+	// This code makes the gcc-ia16 compiler crash.
+
+	Word l = count >> 4;
+	while (l--) {
+		src = ArtPtr[frac >> COLBITS]; src |= src << 8; *(uint16_t __far*)ScreenPtr = src; ScreenPtr += PLANEWIDTH; frac += fracstep;
+		src = ArtPtr[frac >> COLBITS]; src |= src << 8; *(uint16_t __far*)ScreenPtr = src; ScreenPtr += PLANEWIDTH; frac += fracstep;
+		src = ArtPtr[frac >> COLBITS]; src |= src << 8; *(uint16_t __far*)ScreenPtr = src; ScreenPtr += PLANEWIDTH; frac += fracstep;
+		src = ArtPtr[frac >> COLBITS]; src |= src << 8; *(uint16_t __far*)ScreenPtr = src; ScreenPtr += PLANEWIDTH; frac += fracstep;
+
+		src = ArtPtr[frac >> COLBITS]; src |= src << 8; *(uint16_t __far*)ScreenPtr = src; ScreenPtr += PLANEWIDTH; frac += fracstep;
+		src = ArtPtr[frac >> COLBITS]; src |= src << 8; *(uint16_t __far*)ScreenPtr = src; ScreenPtr += PLANEWIDTH; frac += fracstep;
+		src = ArtPtr[frac >> COLBITS]; src |= src << 8; *(uint16_t __far*)ScreenPtr = src; ScreenPtr += PLANEWIDTH; frac += fracstep;
+		src = ArtPtr[frac >> COLBITS]; src |= src << 8; *(uint16_t __far*)ScreenPtr = src; ScreenPtr += PLANEWIDTH; frac += fracstep;
+
+		src = ArtPtr[frac >> COLBITS]; src |= src << 8; *(uint16_t __far*)ScreenPtr = src; ScreenPtr += PLANEWIDTH; frac += fracstep;
+		src = ArtPtr[frac >> COLBITS]; src |= src << 8; *(uint16_t __far*)ScreenPtr = src; ScreenPtr += PLANEWIDTH; frac += fracstep;
+		src = ArtPtr[frac >> COLBITS]; src |= src << 8; *(uint16_t __far*)ScreenPtr = src; ScreenPtr += PLANEWIDTH; frac += fracstep;
+		src = ArtPtr[frac >> COLBITS]; src |= src << 8; *(uint16_t __far*)ScreenPtr = src; ScreenPtr += PLANEWIDTH; frac += fracstep;
+
+		src = ArtPtr[frac >> COLBITS]; src |= src << 8; *(uint16_t __far*)ScreenPtr = src; ScreenPtr += PLANEWIDTH; frac += fracstep;
+		src = ArtPtr[frac >> COLBITS]; src |= src << 8; *(uint16_t __far*)ScreenPtr = src; ScreenPtr += PLANEWIDTH; frac += fracstep;
+		src = ArtPtr[frac >> COLBITS]; src |= src << 8; *(uint16_t __far*)ScreenPtr = src; ScreenPtr += PLANEWIDTH; frac += fracstep;
+		src = ArtPtr[frac >> COLBITS]; src |= src << 8; *(uint16_t __far*)ScreenPtr = src; ScreenPtr += PLANEWIDTH; frac += fracstep;
+	}
+
+	switch (count & 15) {
+		case 15: src = ArtPtr[frac >> COLBITS]; src |= src << 8; *(uint16_t __far*)ScreenPtr = src; ScreenPtr += PLANEWIDTH; frac += fracstep;
+		case 14: src = ArtPtr[frac >> COLBITS]; src |= src << 8; *(uint16_t __far*)ScreenPtr = src; ScreenPtr += PLANEWIDTH; frac += fracstep;
+		case 13: src = ArtPtr[frac >> COLBITS]; src |= src << 8; *(uint16_t __far*)ScreenPtr = src; ScreenPtr += PLANEWIDTH; frac += fracstep;
+		case 12: src = ArtPtr[frac >> COLBITS]; src |= src << 8; *(uint16_t __far*)ScreenPtr = src; ScreenPtr += PLANEWIDTH; frac += fracstep;
+		case 11: src = ArtPtr[frac >> COLBITS]; src |= src << 8; *(uint16_t __far*)ScreenPtr = src; ScreenPtr += PLANEWIDTH; frac += fracstep;
+		case 10: src = ArtPtr[frac >> COLBITS]; src |= src << 8; *(uint16_t __far*)ScreenPtr = src; ScreenPtr += PLANEWIDTH; frac += fracstep;
+		case  9: src = ArtPtr[frac >> COLBITS]; src |= src << 8; *(uint16_t __far*)ScreenPtr = src; ScreenPtr += PLANEWIDTH; frac += fracstep;
+		case  8: src = ArtPtr[frac >> COLBITS]; src |= src << 8; *(uint16_t __far*)ScreenPtr = src; ScreenPtr += PLANEWIDTH; frac += fracstep;
+		case  7: src = ArtPtr[frac >> COLBITS]; src |= src << 8; *(uint16_t __far*)ScreenPtr = src; ScreenPtr += PLANEWIDTH; frac += fracstep;
+		case  6: src = ArtPtr[frac >> COLBITS]; src |= src << 8; *(uint16_t __far*)ScreenPtr = src; ScreenPtr += PLANEWIDTH; frac += fracstep;
+		case  5: src = ArtPtr[frac >> COLBITS]; src |= src << 8; *(uint16_t __far*)ScreenPtr = src; ScreenPtr += PLANEWIDTH; frac += fracstep;
+		case  4: src = ArtPtr[frac >> COLBITS]; src |= src << 8; *(uint16_t __far*)ScreenPtr = src; ScreenPtr += PLANEWIDTH; frac += fracstep;
+		case  3: src = ArtPtr[frac >> COLBITS]; src |= src << 8; *(uint16_t __far*)ScreenPtr = src; ScreenPtr += PLANEWIDTH; frac += fracstep;
+		case  2: src = ArtPtr[frac >> COLBITS]; src |= src << 8; *(uint16_t __far*)ScreenPtr = src; ScreenPtr += PLANEWIDTH; frac += fracstep;
+		case  1: src = ArtPtr[frac >> COLBITS]; src |= src << 8; *(uint16_t __far*)ScreenPtr = src;
+	}
+#endif
 }
 
 
@@ -518,15 +564,61 @@ static void ScaleGluePotato(Word fracstep, Word frac, Word count)
 {
 	Byte __far* ArtPtr    = source;
 	Byte __far* ScreenPtr = dest;
+	uint32_t src;
 
+#if defined __IA16_SYS_MSDOS
 	while (count--) {
-		uint32_t src = ArtPtr[frac >> COLBITS];
+		src = ArtPtr[frac >> COLBITS];
 		src |= src << 8;
 		src |= src << 16;
 		*(uint32_t __far*)ScreenPtr = src;
 		ScreenPtr += PLANEWIDTH;
 		frac += fracstep;
 	}
+#else
+	// This code makes the gcc-ia16 compiler crash.
+
+	Word l = count >> 4;
+	while (l--) {
+		src = ArtPtr[frac >> COLBITS]; src |= src << 8; src |= src << 16; *(uint32_t __far*)ScreenPtr = src; ScreenPtr += PLANEWIDTH; frac += fracstep;
+		src = ArtPtr[frac >> COLBITS]; src |= src << 8; src |= src << 16; *(uint32_t __far*)ScreenPtr = src; ScreenPtr += PLANEWIDTH; frac += fracstep;
+		src = ArtPtr[frac >> COLBITS]; src |= src << 8; src |= src << 16; *(uint32_t __far*)ScreenPtr = src; ScreenPtr += PLANEWIDTH; frac += fracstep;
+		src = ArtPtr[frac >> COLBITS]; src |= src << 8; src |= src << 16; *(uint32_t __far*)ScreenPtr = src; ScreenPtr += PLANEWIDTH; frac += fracstep;
+
+		src = ArtPtr[frac >> COLBITS]; src |= src << 8; src |= src << 16; *(uint32_t __far*)ScreenPtr = src; ScreenPtr += PLANEWIDTH; frac += fracstep;
+		src = ArtPtr[frac >> COLBITS]; src |= src << 8; src |= src << 16; *(uint32_t __far*)ScreenPtr = src; ScreenPtr += PLANEWIDTH; frac += fracstep;
+		src = ArtPtr[frac >> COLBITS]; src |= src << 8; src |= src << 16; *(uint32_t __far*)ScreenPtr = src; ScreenPtr += PLANEWIDTH; frac += fracstep;
+		src = ArtPtr[frac >> COLBITS]; src |= src << 8; src |= src << 16; *(uint32_t __far*)ScreenPtr = src; ScreenPtr += PLANEWIDTH; frac += fracstep;
+
+		src = ArtPtr[frac >> COLBITS]; src |= src << 8; src |= src << 16; *(uint32_t __far*)ScreenPtr = src; ScreenPtr += PLANEWIDTH; frac += fracstep;
+		src = ArtPtr[frac >> COLBITS]; src |= src << 8; src |= src << 16; *(uint32_t __far*)ScreenPtr = src; ScreenPtr += PLANEWIDTH; frac += fracstep;
+		src = ArtPtr[frac >> COLBITS]; src |= src << 8; src |= src << 16; *(uint32_t __far*)ScreenPtr = src; ScreenPtr += PLANEWIDTH; frac += fracstep;
+		src = ArtPtr[frac >> COLBITS]; src |= src << 8; src |= src << 16; *(uint32_t __far*)ScreenPtr = src; ScreenPtr += PLANEWIDTH; frac += fracstep;
+
+		src = ArtPtr[frac >> COLBITS]; src |= src << 8; src |= src << 16; *(uint32_t __far*)ScreenPtr = src; ScreenPtr += PLANEWIDTH; frac += fracstep;
+		src = ArtPtr[frac >> COLBITS]; src |= src << 8; src |= src << 16; *(uint32_t __far*)ScreenPtr = src; ScreenPtr += PLANEWIDTH; frac += fracstep;
+		src = ArtPtr[frac >> COLBITS]; src |= src << 8; src |= src << 16; *(uint32_t __far*)ScreenPtr = src; ScreenPtr += PLANEWIDTH; frac += fracstep;
+		src = ArtPtr[frac >> COLBITS]; src |= src << 8; src |= src << 16; *(uint32_t __far*)ScreenPtr = src; ScreenPtr += PLANEWIDTH; frac += fracstep;
+	}
+
+	switch (count & 15) {
+		case 15: src = ArtPtr[frac >> COLBITS]; src |= src << 8; src |= src << 16; *(uint32_t __far*)ScreenPtr = src; ScreenPtr += PLANEWIDTH; frac += fracstep;
+		case 14: src = ArtPtr[frac >> COLBITS]; src |= src << 8; src |= src << 16; *(uint32_t __far*)ScreenPtr = src; ScreenPtr += PLANEWIDTH; frac += fracstep;
+		case 13: src = ArtPtr[frac >> COLBITS]; src |= src << 8; src |= src << 16; *(uint32_t __far*)ScreenPtr = src; ScreenPtr += PLANEWIDTH; frac += fracstep;
+		case 12: src = ArtPtr[frac >> COLBITS]; src |= src << 8; src |= src << 16; *(uint32_t __far*)ScreenPtr = src; ScreenPtr += PLANEWIDTH; frac += fracstep;
+		case 11: src = ArtPtr[frac >> COLBITS]; src |= src << 8; src |= src << 16; *(uint32_t __far*)ScreenPtr = src; ScreenPtr += PLANEWIDTH; frac += fracstep;
+		case 10: src = ArtPtr[frac >> COLBITS]; src |= src << 8; src |= src << 16; *(uint32_t __far*)ScreenPtr = src; ScreenPtr += PLANEWIDTH; frac += fracstep;
+		case  9: src = ArtPtr[frac >> COLBITS]; src |= src << 8; src |= src << 16; *(uint32_t __far*)ScreenPtr = src; ScreenPtr += PLANEWIDTH; frac += fracstep;
+		case  8: src = ArtPtr[frac >> COLBITS]; src |= src << 8; src |= src << 16; *(uint32_t __far*)ScreenPtr = src; ScreenPtr += PLANEWIDTH; frac += fracstep;
+		case  7: src = ArtPtr[frac >> COLBITS]; src |= src << 8; src |= src << 16; *(uint32_t __far*)ScreenPtr = src; ScreenPtr += PLANEWIDTH; frac += fracstep;
+		case  6: src = ArtPtr[frac >> COLBITS]; src |= src << 8; src |= src << 16; *(uint32_t __far*)ScreenPtr = src; ScreenPtr += PLANEWIDTH; frac += fracstep;
+		case  5: src = ArtPtr[frac >> COLBITS]; src |= src << 8; src |= src << 16; *(uint32_t __far*)ScreenPtr = src; ScreenPtr += PLANEWIDTH; frac += fracstep;
+		case  4: src = ArtPtr[frac >> COLBITS]; src |= src << 8; src |= src << 16; *(uint32_t __far*)ScreenPtr = src; ScreenPtr += PLANEWIDTH; frac += fracstep;
+		case  3: src = ArtPtr[frac >> COLBITS]; src |= src << 8; src |= src << 16; *(uint32_t __far*)ScreenPtr = src; ScreenPtr += PLANEWIDTH; frac += fracstep;
+		case  2: src = ArtPtr[frac >> COLBITS]; src |= src << 8; src |= src << 16; *(uint32_t __far*)ScreenPtr = src; ScreenPtr += PLANEWIDTH; frac += fracstep;
+		case  1: src = ArtPtr[frac >> COLBITS]; src |= src << 8; src |= src << 16; *(uint32_t __far*)ScreenPtr = src;
+	}
+#endif
 }
 #else
 void ScaleGlueHigh(Word fracstep, Word frac, Word count);
