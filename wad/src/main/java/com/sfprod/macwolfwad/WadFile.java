@@ -27,7 +27,7 @@ class WadFile {
 		}
 	}
 
-	void saveWadFile() {
+	void saveWadFile(Episode episode) {
 		int filepos = 4 + 4 + 4 + lumps.size() * (4 + 4 + 8);
 		int filesize = filepos + lumps.stream().mapToInt(Lump::length).sum();
 
@@ -69,7 +69,7 @@ class WadFile {
 			byteBuffer.put(lump.data());
 		}
 
-		Path path = Path.of("target", "MACWOLF1.WAD");
+		Path path = Path.of("target", episode.getOutputFilename());
 		int filesizeWithoutDuplicates = 4 + 4 + 4 + lumps.size() * (4 + 4 + 8)
 				+ lumps.stream().mapToInt(Lump::length).sum();
 

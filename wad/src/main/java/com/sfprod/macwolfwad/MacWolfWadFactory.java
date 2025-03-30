@@ -33,7 +33,7 @@ public class MacWolfWadFactory {
 
 	public static void main(String... args) {
 		MacWolfWadFactory macWolfWadFactory = new MacWolfWadFactory();
-		macWolfWadFactory.createWad();
+		macWolfWadFactory.createWad(Episode.FIRST_ENCOUNTER);
 	}
 
 	static byte[] getBytes(String filename) {
@@ -44,8 +44,8 @@ public class MacWolfWadFactory {
 		}
 	}
 
-	void createWad() {
-		ResourceFile resourceFile = new ResourceFile("Wolfenstein 3D™ First Encounter");
+	void createWad(Episode episode) {
+		ResourceFile resourceFile = new ResourceFile(episode);
 
 		Type brgr = resourceFile.getType("BRGR");
 		wadFile = new WadFile(brgr.calculateMaxId() + 1);
@@ -57,7 +57,7 @@ public class MacWolfWadFactory {
 		processCompressedSound(csnd);
 		addPcSpeakerSoundEffects();
 
-		wadFile.saveWadFile();
+		wadFile.saveWadFile(episode);
 	}
 
 	private void processBurger(Type type) {

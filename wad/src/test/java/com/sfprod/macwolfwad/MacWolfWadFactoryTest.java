@@ -15,11 +15,13 @@ class MacWolfWadFactoryTest {
 
 	@Test
 	void createWad() throws Exception {
+		Episode episode = Episode.FIRST_ENCOUNTER;
+
 		MacWolfWadFactory macWolfWadFactory = new MacWolfWadFactory();
-		macWolfWadFactory.createWad();
+		macWolfWadFactory.createWad(episode);
 
 		CRC32 crc32 = new CRC32();
-		crc32.update(Files.readAllBytes(Path.of("target", "MACWOLF1.WAD")));
+		crc32.update(Files.readAllBytes(Path.of("target", episode.getOutputFilename())));
 
 		assertEquals("5C17472C", Long.toHexString(crc32.getValue()).toUpperCase());
 	}
