@@ -18,7 +18,8 @@ then
   export OUTPUT=MACWOLF.EXE
 fi
 
-nasm z_xms.asm -f elf -DCPU=$CPU
+nasm i_vm13a.asm -f elf -DCPU=$CPU
+nasm z_xms.asm   -f elf -DCPU=$CPU
 
 ia16-elf-gcc -c Data.c      $RENDER_OPTIONS -march=$CPU -mcmodel=small -mnewlib-nano-stdio -mregparmcall -Os -fomit-frame-pointer #-flto -fwhole-program
 
@@ -71,6 +72,7 @@ export GLOBOBJS+=" i_main.o"
 export GLOBOBJS+=" i_pal256.o"
 export GLOBOBJS+=" i_timer.o"
 export GLOBOBJS+=" i_vm13.o"
+export GLOBOBJS+=" i_vm13a.o"
 export GLOBOBJS+=" InterMis.o"
 export GLOBOBJS+=" Intro.o"
 export GLOBOBJS+=" Level.o"
@@ -95,6 +97,7 @@ export GLOBOBJS+=" z_zone.o"
 
 ia16-elf-gcc $GLOBOBJS $CFLAGS $RENDER_OPTIONS -li86 -o GCCIA16/$OUTPUT
 
+rm i_vm13a.o
 rm z_xms.o
 
 rm a_pcfx.o

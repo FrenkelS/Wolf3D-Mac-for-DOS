@@ -442,6 +442,7 @@ static void ScaleGlueFlat(Byte Art, Word count)
 #endif
 
 
+#if !defined _M_I86 || defined C_ONLY
 static void ScaleGlueHigh(Word fracstep, Word frac, Word count)
 {
 	Byte __far* ArtPtr    = source;
@@ -496,6 +497,10 @@ static void ScaleGlueHigh(Word fracstep, Word frac, Word count)
 	}
 #endif
 }
+#else
+void ScaleGlueHigh(Word fracstep, Word frac, Word count);
+#endif
+
 
 static void ScaleGlueLow(Word fracstep, Word frac, Word count)
 {
