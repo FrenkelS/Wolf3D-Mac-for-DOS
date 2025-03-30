@@ -41,10 +41,11 @@ class ResourceFileTest {
 
 	@Test
 	void getTypesSecondEncounter() {
-		String filename = Episode.SECOND_ENCOUNTER.getInputFilename();
-		assumeFileExists(filename);
+		Episode episode = Episode.SECOND_ENCOUNTER;
 
-		ResourceFile resourceFile = new ResourceFile(Episode.SECOND_ENCOUNTER);
+		assumeFileExists(episode.getInputFilename());
+
+		ResourceFile resourceFile = new ResourceFile(episode);
 		List<Type> types = resourceFile.getTypes();
 		assertEquals(35, types.size());
 
@@ -118,7 +119,7 @@ class ResourceFileTest {
 		assertEquals("Music List", resourceNames.get(15));
 	}
 
-	private void assumeFileExists(String filename) {
+	static void assumeFileExists(String filename) {
 		assumeTrue(ResourceFileTest.class.getResource('/' + filename) != null);
 	}
 }
