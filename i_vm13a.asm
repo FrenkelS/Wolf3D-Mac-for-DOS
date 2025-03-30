@@ -66,6 +66,24 @@ last_pixel_low_jump_table:
 	dw last_pixel_low_14,
 	dw last_pixel_low_15
 
+last_pixel_potato_jump_table:
+	dw last_pixel_potato_0,
+	dw last_pixel_potato_1,
+	dw last_pixel_potato_2,
+	dw last_pixel_potato_3,
+	dw last_pixel_potato_4,
+	dw last_pixel_potato_5,
+	dw last_pixel_potato_6,
+	dw last_pixel_potato_7,
+	dw last_pixel_potato_8,
+	dw last_pixel_potato_9,
+	dw last_pixel_potato_10,
+	dw last_pixel_potato_11,
+	dw last_pixel_potato_12,
+	dw last_pixel_potato_13,
+	dw last_pixel_potato_14,
+	dw last_pixel_potato_15
+
 ;
 ; input:
 ;   ax = fracstep
@@ -604,6 +622,326 @@ last_pixel_low_1:
 	stosw
 
 last_pixel_low_0:
+	pop bp
+	pop es
+	pop di
+	pop si
+	mov ax, ss
+	mov ds, ax
+	ret
+
+
+;
+; input:
+;   ax = fracstep
+;   dx = frac
+;   cx = count		1 <= count <= 160	=>	ch = 0
+;
+
+global ScaleGluePotato
+ScaleGluePotato:
+	push si
+	push di
+	push es
+	push bp
+
+	xchg bp, ax						; bp = fracstep
+
+	mov ch, cl						; 1 <= ch <= 160
+%ifidn CPU, i8088
+	shr ch, 1
+	shr ch, 1
+	shr ch, 1
+	shr ch, 1						; 0 <= ah <= 10
+%else
+	shr ch, 4						; 0 <= ah <= 10
+%endif
+
+	les di, [dest]					; es:di = dest
+	lds bx, [source]				; ds:bx = source
+
+	mov si, PLANEWIDTH - 4
+
+	or ch, ch						; if ch = 0
+	jz last_pixels_potato			;  then jump to last_pixels_potato
+
+loop_pixels_potato:
+	mov al, dh						; al = hi byte of frac
+	xlat							; al = source[al]
+	mov ah, al						; ax = source[al]
+	stosw							; write pixel
+	stosw							; write pixel
+	add di, si						; point to next line
+	add dx, bp						; frac += fracstep
+
+	mov al, dh
+	xlat
+	mov ah, al
+	stosw
+	stosw
+	add di, si
+	add dx, bp
+
+	mov al, dh
+	xlat
+	mov ah, al
+	stosw
+	stosw
+	add di, si
+	add dx, bp
+
+	mov al, dh
+	xlat
+	mov ah, al
+	stosw
+	stosw
+	add di, si
+	add dx, bp
+
+	mov al, dh
+	xlat
+	mov ah, al
+	stosw
+	stosw
+	add di, si
+	add dx, bp
+
+	mov al, dh
+	xlat
+	mov ah, al
+	stosw
+	stosw
+	add di, si
+	add dx, bp
+
+	mov al, dh
+	xlat
+	mov ah, al
+	stosw
+	stosw
+	add di, si
+	add dx, bp
+
+	mov al, dh
+	xlat
+	mov ah, al
+	stosw
+	stosw
+	add di, si
+	add dx, bp
+
+	mov al, dh
+	xlat
+	mov ah, al
+	stosw
+	stosw
+	add di, si
+	add dx, bp
+
+	mov al, dh
+	xlat
+	mov ah, al
+	stosw
+	stosw
+	add di, si
+	add dx, bp
+
+	mov al, dh
+	xlat
+	mov ah, al
+	stosw
+	stosw
+	add di, si
+	add dx, bp
+
+	mov al, dh
+	xlat
+	mov ah, al
+	stosw
+	stosw
+	add di, si
+	add dx, bp
+
+	mov al, dh
+	xlat
+	mov ah, al
+	stosw
+	stosw
+	add di, si
+	add dx, bp
+
+	mov al, dh
+	xlat
+	mov ah, al
+	stosw
+	stosw
+	add di, si
+	add dx, bp
+
+	mov al, dh
+	xlat
+	mov ah, al
+	stosw
+	stosw
+	add di, si
+	add dx, bp
+
+	mov al, dh
+	xlat
+	mov ah, al
+	stosw
+	stosw
+	add di, si
+	add dx, bp
+
+	dec ch
+	jnz loop_pixels_potato			; if --ch != 0 then jump to loop_pixels_potato
+
+
+last_pixels_potato:
+	xchg ax, bx						; ax = source
+	mov bx, cx						; bx = count
+	and bl, 15						; 0 <= count <= 15
+	shl bl, 1
+	mov cx, cs:last_pixel_potato_jump_table[bx]
+	xchg ax, bx						; bx = source
+	jmp cx
+
+
+last_pixel_potato_15:
+	mov al, dh
+	xlat
+	mov ah, al
+	stosw
+	stosw
+	add di, si
+	add dx, bp
+
+last_pixel_potato_14:
+	mov al, dh
+	xlat
+	mov ah, al
+	stosw
+	stosw
+	add di, si
+	add dx, bp
+
+last_pixel_potato_13:
+	mov al, dh
+	xlat
+	mov ah, al
+	stosw
+	stosw
+	add di, si
+	add dx, bp
+
+last_pixel_potato_12:
+	mov al, dh
+	xlat
+	mov ah, al
+	stosw
+	stosw
+	add di, si
+	add dx, bp
+
+last_pixel_potato_11:
+	mov al, dh
+	xlat
+	mov ah, al
+	stosw
+	stosw
+	add di, si
+	add dx, bp
+
+last_pixel_potato_10:
+	mov al, dh
+	xlat
+	mov ah, al
+	stosw
+	stosw
+	add di, si
+	add dx, bp
+
+last_pixel_potato_9:
+	mov al, dh
+	xlat
+	mov ah, al
+	stosw
+	stosw
+	add di, si
+	add dx, bp
+
+last_pixel_potato_8:
+	mov al, dh
+	xlat
+	mov ah, al
+	stosw
+	stosw
+	add di, si
+	add dx, bp
+
+last_pixel_potato_7:
+	mov al, dh
+	xlat
+	mov ah, al
+	stosw
+	stosw
+	add di, si
+	add dx, bp
+
+last_pixel_potato_6:
+	mov al, dh
+	xlat
+	mov ah, al
+	stosw
+	stosw
+	add di, si
+	add dx, bp
+
+last_pixel_potato_5:
+	mov al, dh
+	xlat
+	mov ah, al
+	stosw
+	stosw
+	add di, si
+	add dx, bp
+
+last_pixel_potato_4:
+	mov al, dh
+	xlat
+	mov ah, al
+	stosw
+	stosw
+	add di, si
+	add dx, bp
+
+last_pixel_potato_3:
+	mov al, dh
+	xlat
+	mov ah, al
+	stosw
+	stosw
+	add di, si
+	add dx, bp
+
+last_pixel_potato_2:
+	mov al, dh
+	xlat
+	mov ah, al
+	stosw
+	stosw
+	add di, si
+	add dx, bp
+
+last_pixel_potato_1:
+	mov al, dh
+	xlat
+	mov ah, al
+	stosw
+	stosw
+
+last_pixel_potato_0:
 	pop bp
 	pop es
 	pop di
