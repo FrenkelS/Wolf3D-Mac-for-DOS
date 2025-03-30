@@ -19,6 +19,7 @@ public class MacWolfWadFactory {
 	private static final int MySoundList = 135; /* List of sound effects to log */
 	private static final int MyDarkData = 136; /* 256 byte table to darken walls */
 	private static final int MyWallList = 137; /* All wall shapes */
+	private static final int MyBJFace = 138; /* BJ's face for automap */
 	private static final int rIntermission = 139; /* Intermission background */
 	private static final int rInterPics = 141; /* BJ's intermission pictures */
 	private static final int rFaceShapes = 142; /* All the permanent game shapes */
@@ -33,7 +34,7 @@ public class MacWolfWadFactory {
 
 	public static void main(String... args) {
 		MacWolfWadFactory macWolfWadFactory = new MacWolfWadFactory();
-		macWolfWadFactory.createWad();
+		macWolfWadFactory.createWad(Episode.FIRST_ENCOUNTER);
 	}
 
 	static byte[] getBytes(String filename) {
@@ -44,26 +45,50 @@ public class MacWolfWadFactory {
 		}
 	}
 
-	void createWad() {
-		ResourceFile resourceFile = new ResourceFile("Wolfenstein 3D™ First Encounter");
+	void createWad(Episode episode) {
+		ResourceFile resourceFile = new ResourceFile(episode);
 
 		Type brgr = resourceFile.getType("BRGR");
+		Type mapBrgr = getMapBrgr(episode);
 		wadFile = new WadFile(brgr.calculateMaxId() + 1);
-		processBurger(brgr);
+		processBurger(brgr, mapBrgr);
 
-		addMusic();
+		addMusic(episode);
 
-		Type csnd = resourceFile.getType("csnd");
-		processCompressedSound(csnd);
+		processCompressedSound(resourceFile.getType("csnd"));
+		processUncompressedSound(resourceFile.getType("snd "));
+		wadFile.removeLump(MySoundList);
 		addPcSpeakerSoundEffects();
 
-		wadFile.saveWadFile();
+		// Take BJ Map from the First Encounter and put it in the Second Encounter
+		wadFile.setLump(MyBJFace, new Lump("BJ Map", getBytes("BJ Map")));
+
+		wadFile.removeLump(127); // New Game Pal
+		wadFile.removeLump(199); // Pause shape
+
+		wadFile.saveWadFile(episode);
 	}
 
-	private void processBurger(Type type) {
-		for (Resource resource : type.resourceList()) {
+	private Type getMapBrgr(Episode episode) {
+		if (episode.getMapInputFilename() == null) {
+			return null;
+		}
+
+		ResourceFile resourceFile = new ResourceFile(episode.getMapInputFilename());
+		return resourceFile.getType("BRGR");
+	}
+
+	private void processBurger(Type brgr, Type mapBrgr) {
+		for (Resource resource : brgr.resourceList()) {
 			Lump lump = new Lump(resource.getName(), resource.getData());
 			wadFile.setLump(resource.id(), lump);
+		}
+
+		if (mapBrgr != null) {
+			for (Resource resource : mapBrgr.resourceList()) {
+				Lump lump = new Lump(resource.getName(), resource.getData());
+				wadFile.setLump(resource.id(), lump);
+			}
 		}
 
 		processFaceShapes();
@@ -483,17 +508,31 @@ public class MacWolfWadFactory {
 	 *      "https://www.vgmpf.com/Wiki/index.php/Wolfenstein_3D_(MAC)">Video Game
 	 *      Music Preservation Foundation - Wolfenstein 3D (MAC)</a>
 	 */
-	private void addMusic() {
+	private void addMusic(Episode episode) {
 		Lump genmidi = new Lump("GENMIDI", getBytes("GENMIDI.OP2"));
 		Lump title = new Lump("Title", getBytes("01 - Title.mid"));
 		Lump plodding = new Lump("Plodding", getBytes("02 - Plodding.mid"));
 		Lump unleashed = new Lump("Unleashed", getBytes("07 - Unleashed.mid"));
 
-		wadFile.setLump(62, createTimbreBank(genmidi));
+		wadFile.setLump(57, createTimbreBank(genmidi));
+
 		wadFile.setLump(63, plodding);
 		wadFile.setLump(64, title);
+
 		wadFile.setLump(66, unleashed);
 		wadFile.setLump(68, title);
+
+		if (episode == Episode.SECOND_ENCOUNTER) {
+			Lump rocked = new Lump("Rocked", getBytes("03 - Rocked.mid"));
+			Lump original = new Lump("Original", getBytes("04 - Original.mid"));
+			Lump doom = new Lump("Doom", getBytes("05 - Doom.mid"));
+			Lump grunge = new Lump("Grunge", getBytes("06 - Grunge.mid"));
+
+			wadFile.setLump(58, rocked);
+			wadFile.setLump(59, original);
+			wadFile.setLump(60, doom);
+			wadFile.setLump(65, grunge);
+		}
 
 		Lump songList = wadFile.getLump(rSongList);
 		for (int i = 0; i < songList.length(); i += 2) {
@@ -553,12 +592,22 @@ public class MacWolfWadFactory {
 		for (Resource resource : soundResources) {
 			byte[] data = decompressSoundMusicSysLzss(resource.getData());
 			deltaDecompress(data);
-			assertSoundData(data);
-			data = Arrays.copyOfRange(data, 42, Math.min(data.length, 65504 + 42));
-			wadFile.setLump(resource.id() - 50, new Lump(resource.getName(), data));
+			processSound(resource, data);
 		}
+	}
 
-		wadFile.removeLump(MySoundList);
+	private void processUncompressedSound(Type type) {
+		List<Resource> soundResources = type.resourceList().stream().filter(r -> r.id() < 10000).toList();
+
+		for (Resource resource : soundResources) {
+			processSound(resource, resource.getData());
+		}
+	}
+
+	private void processSound(Resource resource, byte[] data) {
+		assertSoundData(data);
+		byte[] newData = Arrays.copyOfRange(data, 42, Math.min(data.length, 65504 + 42));
+		wadFile.setLump(resource.id() - 50, new Lump(resource.getName(), newData));
 	}
 
 	private void deltaDecompress(byte[] data) {

@@ -16,6 +16,10 @@ class ResourceFile {
 
 	private final List<Type> types;
 
+	ResourceFile(Episode episode) {
+		this(episode.getInputFilename());
+	}
+
 	ResourceFile(String filename) {
 		byte[] bytes = MacWolfWadFactory.getBytes(filename);
 		ByteBuffer byteBuffer = ByteBuffer.wrap(bytes);
@@ -86,6 +90,10 @@ class ResourceFile {
 				resource.setData(data);
 			}
 		}
+	}
+
+	List<Type> getTypes() {
+		return types;
 	}
 
 	Type getType(String resourceType) {
