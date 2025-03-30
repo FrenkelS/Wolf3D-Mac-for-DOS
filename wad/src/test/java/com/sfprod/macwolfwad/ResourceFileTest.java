@@ -1,5 +1,6 @@
 package com.sfprod.macwolfwad;
 
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
@@ -37,6 +38,13 @@ class ResourceFileTest {
 		Type csnd = resourceFile.getType("csnd");
 		assertEquals(42, csnd.resourceCount());
 		assertEquals(43, csnd.resourceList().size());
+
+		Type snd = resourceFile.getType("snd ");
+		assertEquals(2, snd.resourceCount());
+		assertEquals(3, snd.resourceList().size());
+
+		List<Resource> uncompressedSounds = snd.resourceList().stream().filter(r -> r.id() < 10000).toList();
+		assertEquals(0, uncompressedSounds.size());
 	}
 
 	@Test
@@ -59,6 +67,17 @@ class ResourceFileTest {
 		Type csnd = resourceFile.getType("csnd");
 		assertEquals(55, csnd.resourceCount());
 		assertEquals(56, csnd.resourceList().size());
+
+		Type snd = resourceFile.getType("snd ");
+		assertEquals(5, snd.resourceCount());
+		assertEquals(6, snd.resourceList().size());
+
+		List<Resource> uncompressedSounds = snd.resourceList().stream().filter(r -> r.id() < 10000).toList();
+		assertEquals(1, uncompressedSounds.size());
+
+		Resource uncompressedSound = uncompressedSounds.getFirst();
+		assertEquals(146, uncompressedSound.id());
+		assertArrayEquals("ROCKET4.AIF".getBytes(), uncompressedSound.getName());
 	}
 
 	@Test

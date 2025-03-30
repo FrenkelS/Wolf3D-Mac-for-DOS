@@ -53,9 +53,12 @@ public class MacWolfWadFactory {
 
 		addMusic();
 
-		Type csnd = resourceFile.getType("csnd");
-		processCompressedSound(csnd);
+		processCompressedSound(resourceFile.getType("csnd"));
+		processUncompressedSound(resourceFile.getType("snd "));
+		wadFile.removeLump(MySoundList);
 		addPcSpeakerSoundEffects();
+
+		wadFile.removeLump(127); // remove New Game Pal
 
 		wadFile.saveWadFile(episode);
 	}
@@ -553,12 +556,22 @@ public class MacWolfWadFactory {
 		for (Resource resource : soundResources) {
 			byte[] data = decompressSoundMusicSysLzss(resource.getData());
 			deltaDecompress(data);
-			assertSoundData(data);
-			data = Arrays.copyOfRange(data, 42, Math.min(data.length, 65504 + 42));
-			wadFile.setLump(resource.id() - 50, new Lump(resource.getName(), data));
+			processSound(resource, data);
 		}
+	}
 
-		wadFile.removeLump(MySoundList);
+	private void processUncompressedSound(Type type) {
+		List<Resource> soundResources = type.resourceList().stream().filter(r -> r.id() < 10000).toList();
+
+		for (Resource resource : soundResources) {
+			processSound(resource, resource.getData());
+		}
+	}
+
+	private void processSound(Resource resource, byte[] data) {
+		assertSoundData(data);
+		byte[] newData = Arrays.copyOfRange(data, 42, Math.min(data.length, 65504 + 42));
+		wadFile.setLump(resource.id() - 50, new Lump(resource.getName(), newData));
 	}
 
 	private void deltaDecompress(byte[] data) {
