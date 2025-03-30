@@ -442,37 +442,58 @@ static void ScaleGlueFlat(Byte Art, Word count)
 #endif
 
 
-static void ScaleGlue(Word fracstep, Word frac, Word count)
+static void ScaleGlueHigh(Word fracstep, Word frac, Word count)
 {
 	Byte __far* ArtPtr    = source;
 	Byte __far* ScreenPtr = dest;
 
+	while (count--) {
+		*ScreenPtr = ArtPtr[frac >> COLBITS];
+		ScreenPtr += PLANEWIDTH;
+		frac += fracstep;
+	}
+}
+
+static void ScaleGlueLow(Word fracstep, Word frac, Word count)
+{
+	Byte __far* ArtPtr    = source;
+	Byte __far* ScreenPtr = dest;
+
+	while (count--) {
+		uint16_t src = ArtPtr[frac >> COLBITS];
+		src |= src << 8;
+		*(uint16_t __far*)ScreenPtr = src;
+		ScreenPtr += PLANEWIDTH;
+		frac += fracstep;
+	}
+}
+
+static void ScaleGluePotato(Word fracstep, Word frac, Word count)
+{
+	Byte __far* ArtPtr    = source;
+	Byte __far* ScreenPtr = dest;
+
+	while (count--) {
+		uint32_t src = ArtPtr[frac >> COLBITS];
+		src |= src << 8;
+		src |= src << 16;
+		*(uint32_t __far*)ScreenPtr = src;
+		ScreenPtr += PLANEWIDTH;
+		frac += fracstep;
+	}
+}
+
+static void ScaleGlue(Word fracstep, Word frac, Word count)
+{
 	switch (detailshift) {
 	case 0:
-		while (count--) {
-			*ScreenPtr = ArtPtr[frac >> COLBITS];
-			ScreenPtr += PLANEWIDTH;
-			frac += fracstep;
-		}
+		ScaleGlueHigh(fracstep, frac, count);
 		break;
 	case 1:
-		while (count--) {
-			uint16_t src = ArtPtr[frac >> COLBITS];
-			src |= src << 8;
-			*(uint16_t __far*)ScreenPtr = src;
-			ScreenPtr += PLANEWIDTH;
-			frac += fracstep;
-		}
+		ScaleGlueLow(fracstep, frac, count);
 		break;
 	case 2:
-		while (count--) {
-			uint32_t src = ArtPtr[frac >> COLBITS];
-			src |= src << 8;
-			src |= src << 16;
-			*(uint32_t __far*)ScreenPtr = src;
-			ScreenPtr += PLANEWIDTH;
-			frac += fracstep;
-		}
+		ScaleGluePotato(fracstep, frac, count);
 		break;
 	}
 }
