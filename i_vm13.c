@@ -435,8 +435,11 @@ static void ScaleGlueFlat(Byte Art,Word MaxLines)
 }
 
 
-static void ScaleGlue(Byte __far* ArtPtr,Word MaxLines,Byte __far* ScreenPtr,LongWord Frac,Word Integer,LongWord Delta)
+static void ScaleGlue(Byte __far* ArtPtr,Word MaxLines,LongWord Frac,Word Integer,LongWord Delta)
 {
+	//Byte __far* ArtPtr = source;
+	Byte __far* ScreenPtr = dest;
+
 	switch (detailshift) {
 	case 0:
 		while (MaxLines--) {
@@ -485,14 +488,17 @@ void IO_ScaleWallColumn(Word x,Word scale,Word tile,Word column)
 	TheFrac = ScaleDiv[scale];
 	scale*=2;
 
+	if (scale < viewheight) {
+		y = (viewheight - scale) / 2;
+		dest = &ViewPointer[(y * PLANEWIDTH) + (x << detailshift)];
+	} else {
+		dest = &ViewPointer[x << detailshift];
+	}
+
 	lump = W_TryGetLumpByNum(ArtData[tile]);
 	if (!lump) {
-		if (scale < viewheight) {
-			y = (viewheight-scale)/2;
-			dest = &ViewPointer[(y * PLANEWIDTH) + (x << detailshift)];
-		} else {
+		if (scale > viewheight) {
 			scale = viewheight;
-			dest = &ViewPointer[x << detailshift];
 		}
 		ScaleGlueFlat(tile, scale);
 	} else {
@@ -500,7 +506,6 @@ void IO_ScaleWallColumn(Word x,Word scale,Word tile,Word column)
 		if (scale<viewheight) {
 			y = (viewheight-scale)/2;
 			ScaleGlue(ArtStart,scale,
-				&ViewPointer[(y * PLANEWIDTH) + (x << detailshift)],
 				TheFrac << 8,	/* Fractional value */
 				TheFrac >> 24,	/* Integer value */
 				0
@@ -510,7 +515,6 @@ void IO_ScaleWallColumn(Word x,Word scale,Word tile,Word column)
 			y = (scale-viewheight)/2;		/* How manu lines to remove */
 			ly = y*TheFrac;
 			ScaleGlue(&ArtStart[ly>>24],viewheight,
-				&ViewPointer[x << detailshift],
 				TheFrac << 8,	/* Fractional value */
 				TheFrac >> 24,	/* Integer value */
 				ly<<8
@@ -589,10 +593,10 @@ void IO_ScaleMaskedColumn(Word x,Word scale,Word lumpNum,Word column)
 					}
 					RunCount = Y2-Y1;
 					if (RunCount) {
+						dest = &Screenad[Y1 * PLANEWIDTH];			/* Pointer to screen */
 						ScaleGlue(
 						&CharPtr2[Index],	/* Pointer to art data */
 						RunCount,			/* Number of lines to draw */
-						&Screenad[Y1*PLANEWIDTH],			/* Pointer to screen */
 						TFrac,				/* Fractional value */ 
 						TInt,				/* Integer value */
 						Delta					/* Delta value */
