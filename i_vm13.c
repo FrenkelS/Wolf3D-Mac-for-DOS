@@ -396,7 +396,7 @@ void SetupScalers(void)
 	
 **********************************/
 
-//Byte __far* source;
+Byte __far* source;
 Byte __far* dest;
 
 
@@ -435,9 +435,9 @@ static void ScaleGlueFlat(Byte Art,Word MaxLines)
 }
 
 
-static void ScaleGlue(Byte __far* ArtPtr,Word MaxLines,LongWord Frac,Word Integer,LongWord Delta)
+static void ScaleGlue(Word MaxLines,LongWord Frac,Word Integer,LongWord Delta)
 {
-	//Byte __far* ArtPtr = source;
+	Byte __far* ArtPtr    = source;
 	Byte __far* ScreenPtr = dest;
 
 	switch (detailshift) {
@@ -477,8 +477,6 @@ static void ScaleGlue(Byte __far* ArtPtr,Word MaxLines,LongWord Frac,Word Intege
 void IO_ScaleWallColumn(Word x,Word scale,Word tile,Word column)
 {
 	LongWord TheFrac;
-	Word y;
-	Byte __far* ArtStart;
 	Byte __far* lump;
 
 	if (!scale) {		/* Uhh.. Don't bother */
@@ -486,10 +484,10 @@ void IO_ScaleWallColumn(Word x,Word scale,Word tile,Word column)
 	}
 
 	TheFrac = ScaleDiv[scale];
-	scale*=2;
+	scale *= 2;
 
 	if (scale < viewheight) {
-		y = (viewheight - scale) / 2;
+		Word y = (viewheight - scale) / 2;
 		dest = &ViewPointer[(y * PLANEWIDTH) + (x << detailshift)];
 	} else {
 		dest = &ViewPointer[x << detailshift];
@@ -502,22 +500,21 @@ void IO_ScaleWallColumn(Word x,Word scale,Word tile,Word column)
 		}
 		ScaleGlueFlat(tile, scale);
 	} else {
-		ArtStart = &lump[(column&127)<<7];
-		if (scale<viewheight) {
-			y = (viewheight-scale)/2;
-			ScaleGlue(ArtStart,scale,
+		if (scale <= viewheight) {
+			source = &lump[(column & 127) << 7];
+			ScaleGlue(scale,
 				TheFrac << 8,	/* Fractional value */
 				TheFrac >> 24,	/* Integer value */
 				0
 			);
 		} else {
-			LongWord ly;
-			y = (scale-viewheight)/2;		/* How manu lines to remove */
-			ly = y*TheFrac;
-			ScaleGlue(&ArtStart[ly>>24],viewheight,
+			Word y = (scale - viewheight) / 2;		/* How many lines to remove */
+			LongWord ly = y * TheFrac;
+			source = &lump[((column & 127) << 7) + (Word)(ly >> 24)];
+			ScaleGlue(viewheight,
 				TheFrac << 8,	/* Fractional value */
 				TheFrac >> 24,	/* Integer value */
-				ly<<8
+				ly << 8
 			);
 		}
 		Z_ChangeTagToCache(lump);
@@ -593,9 +590,9 @@ void IO_ScaleMaskedColumn(Word x,Word scale,Word lumpNum,Word column)
 					}
 					RunCount = Y2-Y1;
 					if (RunCount) {
-						dest = &Screenad[Y1 * PLANEWIDTH];			/* Pointer to screen */
+						source = &CharPtr2[Index],	/* Pointer to art data */
+						dest   = &Screenad[Y1 * PLANEWIDTH];			/* Pointer to screen */
 						ScaleGlue(
-						&CharPtr2[Index],	/* Pointer to art data */
 						RunCount,			/* Number of lines to draw */
 						TFrac,				/* Fractional value */ 
 						TInt,				/* Integer value */
