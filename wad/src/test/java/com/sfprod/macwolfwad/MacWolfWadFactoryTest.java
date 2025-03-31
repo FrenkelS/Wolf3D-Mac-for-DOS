@@ -8,6 +8,8 @@ import java.nio.file.Path;
 import java.util.zip.CRC32;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 
 /**
  * This class tests {@link MacWolfWadFactory}
@@ -40,5 +42,28 @@ class MacWolfWadFactoryTest {
 		crc32.update(Files.readAllBytes(Path.of("target", episode.getOutputFilename())));
 
 		assertEquals("474E6AB3", Long.toHexString(crc32.getValue()).toUpperCase());
+	}
+
+	@ParameterizedTest
+	@CsvSource({ //
+			"1 Escape From Wolfenstein, BED89984", //
+			"2 Operation-Eisenfaust, 71710DDA", //
+			"'3 Die, Führer, Die!', 7DE52050", //
+			"4 A Dark Secret, 754DF1FA", //
+			"5 Trail of the Madman, E1D5D0E8", //
+			"6 Confrontation, 52284BCE" })
+	void createMapWadThirdEncounter(String inputFilename, String checksum) throws Exception {
+		assumeFileExists(inputFilename);
+
+		String outputFilename = "MW3E" + inputFilename.charAt(0) + ".WAD";
+
+		MacWolfWadFactory macWolfWadFactory = new MacWolfWadFactory();
+		macWolfWadFactory.createMapWad(inputFilename, outputFilename);
+
+		CRC32 crc32 = new CRC32();
+		crc32.update(Files.readAllBytes(Path.of("target", outputFilename)));
+
+		assertEquals(checksum, Long.toHexString(crc32.getValue()).toUpperCase());
+
 	}
 }

@@ -109,7 +109,7 @@ class ResourceFileTest {
 	@ParameterizedTest
 	@ValueSource(strings = { "1 Escape From Wolfenstein", "2 Operation-Eisenfaust", "3 Die, Führer, Die!",
 			"4 A Dark Secret", "5 Trail of the Madman", "6 Confrontation" })
-	void getTypesThirdEncounterLevels(String filename) {
+	void getTypesThirdEncounterMaps(String filename) {
 		assumeFileExists(filename);
 
 		ResourceFile resourceFile = new ResourceFile(filename);
