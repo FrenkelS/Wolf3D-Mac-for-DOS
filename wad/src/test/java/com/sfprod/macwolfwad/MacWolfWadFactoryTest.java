@@ -28,7 +28,7 @@ class MacWolfWadFactoryTest {
 	}
 
 	@Test
-	void createWadEncounterEncounter() throws Exception {
+	void createWadSecondEncounter() throws Exception {
 		Episode episode = Episode.SECOND_ENCOUNTER;
 
 		assumeFileExists(episode.getInputFilename());
