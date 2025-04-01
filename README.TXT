@@ -22,7 +22,8 @@ Both versions require a VGA graphics card.
 It's based on the original Macintosh Wolfenstein 3D source release.
 
 What's special?
- - Supports only Wolfenstein 3D: First Encounter, that is, the first 3 levels
+ - Supports Wolfenstein 3D: First Encounter and Second Encounter
+ - WASD + mouselook controls
  - The palette changes when the player gets hurt or picks up an item 
  - Screen resizing
  - High, low and potato detail modes
