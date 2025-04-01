@@ -72,7 +72,7 @@ static void __far*__far* lumpcache;
 // LUMP BASED ROUTINES.
 //
 
-#define BUFFERSIZE 512
+#define BUFFERSIZE 256
 
 static void _ffread(void __far* ptr, uint16_t size, FILE* fp)
 {
