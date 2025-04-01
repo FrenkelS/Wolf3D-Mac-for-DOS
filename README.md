@@ -21,7 +21,8 @@ Download MacWolf for DOS [here](https://github.com/FrenkelS/Wolf3D-Mac-for-DOS/r
 Watch what it looks like on a real PC [here](https://www.youtube.com/watch?v=69g_g_kB9bQ).
 
 **What's special?:**
- - Supports only Wolfenstein 3D: First Encounter, that is, the first 3 levels
+ - Supports Wolfenstein 3D: First Encounter and Second Encounter
+ - WASD + mouselook controls
  - The palette changes when the player gets hurt or picks up an item 
  - Screen resizing
  - High, low and potato detail modes
