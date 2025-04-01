@@ -38,9 +38,15 @@ int M_GetParmCount(void)
 }
 
 
-int M_GetParm(int p)
+int M_GetParmAsInt(int p)
 {
 	return strtol(myargv[p], NULL, 0x10);
+}
+
+
+const char* M_GetParmAsString(int p)
+{
+	return myargv[p];
 }
 
 

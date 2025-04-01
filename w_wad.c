@@ -164,7 +164,18 @@ void W_Init(void)
 
 	fileWAD = fopen("MACWOLF2.WAD", "rb");
 	if (fileWAD != NULL) {
-		printf("Second");
+		int p = M_CheckParm("file");
+		if (p && p < M_GetParmCount() - 1) {
+			const char* mapfilename = M_GetParmAsString(p + 1);
+			fileMapWAD = fopen(mapfilename, "rb");
+			if (fileMapWAD != NULL) {
+				printf("Third");
+			} else {
+				I_Error("Can't open %s", mapfilename);
+			}
+		} else {
+			printf("Second");
+		}
 	} else {
 		fileWAD = fopen("MACWOLF1.WAD", "rb");
 		if (fileWAD != NULL) {
@@ -173,7 +184,6 @@ void W_Init(void)
 			I_Error("Can't open WAD file.");
 		}
 	}
-	fileMapWAD = fileWAD;
 	printf(" Encounter\n");
 
 	xms = W_LoadWADIntoXMS();
@@ -260,6 +270,10 @@ void __far* W_GetMapLumpByNum(int16_t num)
 	int32_t     infotableofs;
 	filelump_t  filelump;
 	void __far* lump;
+
+	if (fileMapWAD == NULL) {
+		return W_GetLumpByNum(num);
+	}
 
 	fseek(fileMapWAD, 8, SEEK_SET);
 	fread(&infotableofs, sizeof(int32_t), 1, fileMapWAD);
