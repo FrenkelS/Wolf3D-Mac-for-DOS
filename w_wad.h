@@ -45,6 +45,7 @@ void W_Shutdown(void);
 uint16_t    W_LumpLength(     int16_t num);
 Boolean     W_IsLumpCached(   int16_t num);
 void __far* W_GetLumpByNum(   int16_t num);
+void __far* W_GetMapLumpByNum(int16_t num);
 void __far* W_TryGetLumpByNum(int16_t num);
 void        W_ReadLumpByNum(  int16_t num, void __far* ptr);
 

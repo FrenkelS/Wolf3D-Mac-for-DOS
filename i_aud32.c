@@ -101,7 +101,7 @@ void I_InitSound(void)
 	if (!M_CheckParm("nomusic")) {
 		int p = M_CheckParm("mpu401");
 		if (p && p < M_GetParmCount() - 1) {
-			int32_t snd_Mport = M_GetParm(p + 1);
+			int32_t snd_Mport = M_GetParmAsInt(p + 1);
 			if (MPU_Init(snd_Mport)) {
 				I_Error("The MPU-401 isn't reponding");
 			}

@@ -21,7 +21,7 @@ Download MacWolf for DOS [here](https://github.com/FrenkelS/Wolf3D-Mac-for-DOS/r
 Watch what it looks like on a real PC [here](https://www.youtube.com/watch?v=69g_g_kB9bQ).
 
 **What's special?:**
- - Supports Wolfenstein 3D: First Encounter and Second Encounter
+ - Supports Wolfenstein 3D: First, Second and Third Encounter
  - WASD + mouselook controls
  - The palette changes when the player gets hurt or picks up an item 
  - Screen resizing
@@ -58,6 +58,7 @@ Watch what it looks like on a real PC [here](https://www.youtube.com/watch?v=69g
 |easy                 |Difficulty: Don't hurt me           |
 |normal               |Difficulty: Bring 'em on!           |
 |hard                 |Difficulty: I am DEATH incarnate!   |
+|file MW3E#.WAD       |Load custom maps                    |
 |nosound              |Disable sound effects and music     |
 |nomusic              |Disable music                       |
 |mpu401 ###           |Enable MPU-401 at port ###, e.g. 330|

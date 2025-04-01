@@ -25,6 +25,7 @@ public class MacWolfWadFactory {
 	private static final int rFaceShapes = 142; /* All the permanent game shapes */
 	private static final int rFace512 = 143; /* All game sprites */
 	private static final int rFace640 = 144;
+	private static final int rGamePal = 145; /* Game Palette */
 	private static final int rMapList = 146; /* Map info data */
 	private static final int rSongList = 147; /* Music list data */
 	private static final int rGetPsychPic = 148;
@@ -67,6 +68,33 @@ public class MacWolfWadFactory {
 		wadFile.removeLump(199); // Pause shape
 
 		wadFile.saveWadFile(episode);
+	}
+
+	void createMapWad(String inputFilename, String outputFilename) {
+		ResourceFile resourceFile = new ResourceFile(inputFilename);
+
+		Type brgr = resourceFile.getType("BRGR");
+		wadFile = new WadFile(brgr.calculateMaxId() + 1);
+
+		for (Resource resource : brgr.resourceList()) {
+			Lump lump = new Lump(resource.getName(), resource.getData());
+			wadFile.setLump(resource.id(), lump);
+		}
+
+		swapShortEndianness(rMapList);
+		swapShortEndianness(rSongList);
+
+		Lump songList = wadFile.getLump(rSongList);
+		for (int i = 0; i < songList.length(); i += 2) {
+			songList.data()[i] = NumberUtils.toByte(NumberUtils.toInt(songList.data()[i]) - 70);
+		}
+
+		wadFile.removeLump(1); // Signature
+		wadFile.removeLump(MySoundList);
+		wadFile.removeLump(MyWallList);
+		wadFile.removeLump(rGamePal);
+
+		wadFile.saveWadFile(outputFilename);
 	}
 
 	private Type getMapBrgr(Episode episode) {
@@ -520,6 +548,7 @@ public class MacWolfWadFactory {
 		wadFile.setLump(64, title);
 
 		wadFile.setLump(66, unleashed);
+
 		wadFile.setLump(68, title);
 
 		if (episode == Episode.SECOND_ENCOUNTER) {
