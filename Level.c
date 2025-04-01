@@ -572,7 +572,7 @@ void SetupGameLevel(void)
 /* Load a level */
 
 	ReleaseMap();				/* Free up any previous map */
-	MapPtr = W_GetLumpByNum(MapListPtr->MapRezNum+gamestate.mapon);	/* Load in the map */
+	MapPtr = W_GetMapLumpByNum(MapListPtr->MapRezNum+gamestate.mapon);	/* Load in the map */
 
 	DrawPsyched(1);		/* First stage done */
 #ifdef __BIGENDIAN__

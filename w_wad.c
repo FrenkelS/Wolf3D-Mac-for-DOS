@@ -60,6 +60,7 @@ typedef struct
 //
 
 static FILE* fileWAD;
+static FILE* fileMapWAD;
 
 static int16_t numlumps;
 
@@ -172,6 +173,7 @@ void W_Init(void)
 			I_Error("Can't open WAD file.");
 		}
 	}
+	fileMapWAD = fileWAD;
 	printf(" Encounter\n");
 
 	xms = W_LoadWADIntoXMS();
@@ -250,4 +252,25 @@ void __far* W_TryGetLumpByNum(int16_t num)
 		return W_GetLumpByNum(num);
 	else
 		return NULL;
+}
+
+
+void __far* W_GetMapLumpByNum(int16_t num)
+{
+	int32_t     infotableofs;
+	filelump_t  filelump;
+	void __far* lump;
+
+	fseek(fileMapWAD, 8, SEEK_SET);
+	fread(&infotableofs, sizeof(int32_t), 1, fileMapWAD);
+
+	fseek(fileMapWAD, infotableofs + sizeof(filelump_t) * num, SEEK_SET);
+	fread(&filelump, sizeof(filelump_t), 1, fileMapWAD);
+
+	lump = Z_MallocStatic(filelump.size);
+
+	fseek(fileMapWAD, filelump.filepos, SEEK_SET);
+	_ffread(lump, filelump.size, fileMapWAD);
+
+	return lump;
 }
