@@ -13,6 +13,10 @@ record Lump(byte[] name, byte[] data) {
 		this(nameAsString.getBytes(StandardCharsets.US_ASCII), data);
 	}
 
+	String nameAsString() {
+		return new String(name).trim();
+	}
+
 	int length() {
 		return data.length;
 	}
