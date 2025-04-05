@@ -259,8 +259,9 @@ public class MacWolfWadFactory {
 			wadFile.removeLump(300 + i);
 		}
 
-		swapShortEndianness(MyWallList);
 		Lump wallListLump = wadFile.getLump(MyWallList);
+		swapShortEndianness(wallListLump.data(), wallListLump.length() / 2);
+
 		ByteBuffer bb = ByteBuffer.wrap(wallListLump.data());
 		bb.order(ByteOrder.LITTLE_ENDIAN);
 		List<Short> wallResourceNumbers = new ArrayList<>();
@@ -289,7 +290,7 @@ public class MacWolfWadFactory {
 					for (int j = 0; j < 128 * 128; j++) {
 						darkendData[j] = darkData[NumberUtils.toInt(wallLump.data()[j])];
 					}
-					newWallLump = new Lump(wallLump.name(), darkendData);
+					newWallLump = new Lump(wallLump.nameAsString() + 'D', darkendData);
 				} else {
 					newWallLump = new Lump(wallLump.name(), wallLump.data());
 				}
