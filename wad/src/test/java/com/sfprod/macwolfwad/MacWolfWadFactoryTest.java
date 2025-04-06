@@ -1,5 +1,6 @@
 package com.sfprod.macwolfwad;
 
+import static com.sfprod.macwolfwad.ResourceFileTest.assumeEpisodeExists;
 import static com.sfprod.macwolfwad.ResourceFileTest.assumeFileExists;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -33,7 +34,7 @@ class MacWolfWadFactoryTest {
 	void createWadSecondEncounter() throws Exception {
 		Episode episode = Episode.SECOND_ENCOUNTER;
 
-		assumeFileExists(episode.getInputFilename());
+		assumeEpisodeExists(episode);
 
 		MacWolfWadFactory macWolfWadFactory = new MacWolfWadFactory();
 		macWolfWadFactory.createWad(episode);
@@ -42,6 +43,21 @@ class MacWolfWadFactoryTest {
 		crc32.update(Files.readAllBytes(Path.of("target", episode.getOutputFilename())));
 
 		assertEquals("40698D57", Long.toHexString(crc32.getValue()).toUpperCase());
+	}
+
+	@Test
+	void createWadThirdEncounter() throws Exception {
+		Episode episode = Episode.THIRD_ENCOUNTER;
+
+		assumeEpisodeExists(episode);
+
+		MacWolfWadFactory macWolfWadFactory = new MacWolfWadFactory();
+		macWolfWadFactory.createWad(episode);
+
+		CRC32 crc32 = new CRC32();
+		crc32.update(Files.readAllBytes(Path.of("target", episode.getOutputFilename())));
+
+		assertEquals("FA11B20B", Long.toHexString(crc32.getValue()).toUpperCase());
 	}
 
 	@ParameterizedTest
@@ -64,6 +80,5 @@ class MacWolfWadFactoryTest {
 		crc32.update(Files.readAllBytes(Path.of("target", outputFilename)));
 
 		assertEquals(checksum, Long.toHexString(crc32.getValue()).toUpperCase());
-
 	}
 }

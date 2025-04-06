@@ -102,7 +102,7 @@ public class MacWolfWadFactory {
 			return null;
 		}
 
-		ResourceFile resourceFile = new ResourceFile("Second Encounter (30 Levels)");
+		ResourceFile resourceFile = new ResourceFile(Episode.SECOND_ENCOUNTER_SEPARATE_MAPS_FILENAME);
 		return resourceFile.getType("BRGR");
 	}
 

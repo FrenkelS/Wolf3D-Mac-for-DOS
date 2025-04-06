@@ -4,7 +4,9 @@ import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
+import java.net.URL;
 import java.util.List;
+import java.util.zip.CRC32;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -20,6 +22,11 @@ class ResourceFileTest {
 	private static final List<String> SECOND_ENCOUNTER_TYPES = List.of("BRGR", "FREF", "MENU", "MBAR", "BNDL", "WOLF",
 			"STR#", "cicn", "icl4", "icl8", "ICN#", "ics#", "ics4", "ics8", "DLOG", "mstr", "csnd", "snd ", "hfdr",
 			"hmnu", "TEXT", "INST", "Midi", "SONG", "ALRT", "DITL", "PICT", "MDRV", "SMOD", "vers", "CODE", "XREF",
+			"DATA", "SIZE", "cfrg");
+
+	private static final List<String> THIRD_ENCOUNTER_TYPES = List.of("BRGR", "FREF", "MENU", "MBAR", "WOLF", "STR#",
+			"cicn", "icl4", "icl8", "ICN#", "ics#", "ics4", "ics8", "DLOG", "mstr", "csnd", "snd ", "INST", "Midi",
+			"ALRT", "DITL", "PICT", "vers", "BNDL", "SMOD", "MDRV", "hfdr", "hmnu", "TEXT", "SONG", "CODE", "XREF",
 			"DATA", "SIZE", "cfrg");
 
 	@Test
@@ -51,7 +58,7 @@ class ResourceFileTest {
 	void getTypesSecondEncounter() {
 		Episode episode = Episode.SECOND_ENCOUNTER;
 
-		assumeFileExists(episode.getInputFilename());
+		assumeEpisodeExists(episode);
 
 		ResourceFile resourceFile = new ResourceFile(episode);
 		List<Type> types = resourceFile.getTypes();
@@ -81,8 +88,41 @@ class ResourceFileTest {
 	}
 
 	@Test
-	void getTypesSecondEncounterLevels() {
-		String filename = "Second Encounter (30 Levels)";
+	void getTypesThirdEncounter() {
+		Episode episode = Episode.THIRD_ENCOUNTER;
+
+		assumeEpisodeExists(episode);
+
+		ResourceFile resourceFile = new ResourceFile(episode);
+		List<Type> types = resourceFile.getTypes();
+		assertEquals(35, types.size());
+
+		assertEquals(THIRD_ENCOUNTER_TYPES, types.stream().map(Type::type).toList());
+
+		Type brgr = resourceFile.getType("BRGR");
+		assertEquals(232, brgr.resourceCount());
+		assertEquals(233, brgr.resourceList().size());
+		assertEquals(601, brgr.calculateMaxId());
+
+		Type csnd = resourceFile.getType("csnd");
+		assertEquals(55, csnd.resourceCount());
+		assertEquals(56, csnd.resourceList().size());
+
+		Type snd = resourceFile.getType("snd ");
+		assertEquals(5, snd.resourceCount());
+		assertEquals(6, snd.resourceList().size());
+
+		List<Resource> uncompressedSounds = snd.resourceList().stream().filter(r -> r.id() < 10000).toList();
+		assertEquals(1, uncompressedSounds.size());
+
+		Resource uncompressedSound = uncompressedSounds.getFirst();
+		assertEquals(146, uncompressedSound.id());
+		assertArrayEquals("ROCKET4.AIF".getBytes(), uncompressedSound.getName());
+	}
+
+	@Test
+	void getTypesSecondEncounterSeparateMaps() {
+		String filename = Episode.SECOND_ENCOUNTER_SEPARATE_MAPS_FILENAME;
 		assumeFileExists(filename);
 
 		ResourceFile resourceFile = new ResourceFile(filename);
@@ -136,6 +176,22 @@ class ResourceFileTest {
 		}
 		assertEquals("Map 5", resourceNames.get(10));
 		assertEquals("Music List", resourceNames.get(15));
+	}
+
+	static void assumeEpisodeExists(Episode episode) {
+		assumeFileExists(episode.getInputFilename());
+		byte[] bytes = MacWolfWadFactory.getBytes(episode.getInputFilename());
+
+		CRC32 crc32 = new CRC32();
+		crc32.update(bytes);
+
+		assumeTrue(episode.getCrc().equals(Long.toHexString(crc32.getValue()).toUpperCase()));
+
+		URL secondEncounterSeparateMaps = ResourceFileTest.class
+				.getResource('/' + Episode.SECOND_ENCOUNTER_SEPARATE_MAPS_FILENAME);
+		if (episode == Episode.THIRD_ENCOUNTER) {
+			assumeTrue(secondEncounterSeparateMaps != null);
+		}
 	}
 
 	static void assumeFileExists(String filename) {
