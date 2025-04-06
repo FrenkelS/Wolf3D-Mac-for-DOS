@@ -17,9 +17,9 @@ class ResourceFileTest {
 			"ics4", "ics8", "ALRT", "DITL", "DLOG", "PICT", "BNDL", "MENU", "mstr", "snd ", "hfdr", "hmnu", "TEXT",
 			"CODE", "XREF", "DATA", "SIZE", "cfrg");
 
-	private static final List<String> SECOND_ENCOUNTER_TYPES = List.of("BRGR", "FREF", "MENU", "MBAR", "WOLF", "STR#",
-			"cicn", "icl4", "icl8", "ICN#", "ics#", "ics4", "ics8", "DLOG", "mstr", "csnd", "snd ", "INST", "Midi",
-			"ALRT", "DITL", "PICT", "vers", "BNDL", "SMOD", "MDRV", "hfdr", "hmnu", "TEXT", "SONG", "CODE", "XREF",
+	private static final List<String> SECOND_ENCOUNTER_TYPES = List.of("BRGR", "FREF", "MENU", "MBAR", "BNDL", "WOLF",
+			"STR#", "cicn", "icl4", "icl8", "ICN#", "ics#", "ics4", "ics8", "DLOG", "mstr", "csnd", "snd ", "hfdr",
+			"hmnu", "TEXT", "INST", "Midi", "SONG", "ALRT", "DITL", "PICT", "MDRV", "SMOD", "vers", "CODE", "XREF",
 			"DATA", "SIZE", "cfrg");
 
 	@Test
@@ -60,9 +60,9 @@ class ResourceFileTest {
 		assertEquals(SECOND_ENCOUNTER_TYPES, types.stream().map(Type::type).toList());
 
 		Type brgr = resourceFile.getType("BRGR");
-		assertEquals(232, brgr.resourceCount());
-		assertEquals(233, brgr.resourceList().size());
-		assertEquals(601, brgr.calculateMaxId());
+		assertEquals(257, brgr.resourceCount());
+		assertEquals(258, brgr.resourceList().size());
+		assertEquals(597, brgr.calculateMaxId());
 
 		Type csnd = resourceFile.getType("csnd");
 		assertEquals(55, csnd.resourceCount());

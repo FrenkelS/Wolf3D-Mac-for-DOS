@@ -49,9 +49,8 @@ public class MacWolfWadFactory {
 		ResourceFile resourceFile = new ResourceFile(episode);
 
 		Type brgr = resourceFile.getType("BRGR");
-		Type mapBrgr = getMapBrgr(episode);
 		wadFile = new WadFile(brgr.calculateMaxId() + 1);
-		processBurger(brgr, mapBrgr);
+		processBurger(brgr);
 
 		addMusic(episode);
 
@@ -69,26 +68,10 @@ public class MacWolfWadFactory {
 		wadFile.saveWadFile(episode);
 	}
 
-	private Type getMapBrgr(Episode episode) {
-		if (episode.getMapInputFilename() == null) {
-			return null;
-		}
-
-		ResourceFile resourceFile = new ResourceFile(episode.getMapInputFilename());
-		return resourceFile.getType("BRGR");
-	}
-
-	private void processBurger(Type brgr, Type mapBrgr) {
+	private void processBurger(Type brgr) {
 		for (Resource resource : brgr.resourceList()) {
 			Lump lump = new Lump(resource.getName(), resource.getData());
 			wadFile.setLump(resource.id(), lump);
-		}
-
-		if (mapBrgr != null) {
-			for (Resource resource : mapBrgr.resourceList()) {
-				Lump lump = new Lump(resource.getName(), resource.getData());
-				wadFile.setLump(resource.id(), lump);
-			}
 		}
 
 		processFaceShapes();
@@ -521,9 +504,10 @@ public class MacWolfWadFactory {
 		wadFile.setLump(64, title);
 
 		wadFile.setLump(66, unleashed);
+
 		wadFile.setLump(68, title);
 
-		if (episode == Episode.SECOND_ENCOUNTER) {
+		if (episode != Episode.FIRST_ENCOUNTER) {
 			Lump rocked = new Lump("Rocked", getBytes("03 - Rocked.mid"));
 			Lump original = new Lump("Original", getBytes("04 - Original.mid"));
 			Lump doom = new Lump("Doom", getBytes("05 - Doom.mid"));
