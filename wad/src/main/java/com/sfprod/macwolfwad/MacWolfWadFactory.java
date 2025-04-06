@@ -186,7 +186,7 @@ public class MacWolfWadFactory {
 	}
 
 	private void processSprites() {
-		for (int lumpnum = 428; lumpnum < 594; lumpnum++) {
+		for (int lumpnum = 428; lumpnum < wadFile.getLumpCount(); lumpnum++) {
 			Lump lump = wadFile.getLump(lumpnum);
 			if (!lump.isEmpty()) {
 				byte[] decompressedData = DLZSS(lump, 2);

@@ -82,6 +82,10 @@ class WadFile {
 		System.out.println("WAD file of size " + filesizeWithoutDuplicates + " written to " + path.toAbsolutePath());
 	}
 
+	int getLumpCount() {
+		return lumps.size();
+	}
+
 	void removeLump(int lumpnum) {
 		lumps.set(lumpnum, EMPTY_LUMP);
 	}
