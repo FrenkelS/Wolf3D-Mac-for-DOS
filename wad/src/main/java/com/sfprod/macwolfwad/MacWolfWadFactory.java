@@ -98,11 +98,11 @@ public class MacWolfWadFactory {
 	}
 
 	private Type getMapBrgr(Episode episode) {
-		if (episode.getMapInputFilename() == null) {
+		if (episode != Episode.THIRD_ENCOUNTER) {
 			return null;
 		}
 
-		ResourceFile resourceFile = new ResourceFile(episode.getMapInputFilename());
+		ResourceFile resourceFile = new ResourceFile("Second Encounter (30 Levels)");
 		return resourceFile.getType("BRGR");
 	}
 
@@ -552,7 +552,7 @@ public class MacWolfWadFactory {
 
 		wadFile.setLump(68, title);
 
-		if (episode == Episode.SECOND_ENCOUNTER) {
+		if (episode != Episode.FIRST_ENCOUNTER) {
 			Lump rocked = new Lump("Rocked", getBytes("03 - Rocked.mid"));
 			Lump original = new Lump("Original", getBytes("04 - Original.mid"));
 			Lump doom = new Lump("Doom", getBytes("05 - Doom.mid"));
