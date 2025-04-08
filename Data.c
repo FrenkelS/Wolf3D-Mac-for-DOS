@@ -63,6 +63,7 @@ Word viewwidth       = SCREENWIDTH;
 Word scaledviewwidth = SCREENWIDTH;
 Word viewheight      = MAXVIEWHEIGHT;
 Word detailshift     = 0;
+Word automapzoomlevel = 4;
 Byte textures[MAPSIZE*2+5][MAPSIZE];	/* Texture indexes */
 const Word NaziSound[] = {SND_ESEE,SND_ESEE2,SND_ESEE3,SND_ESEE4};
 
