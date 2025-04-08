@@ -21,9 +21,10 @@ Download MacWolf for DOS [here](https://github.com/FrenkelS/Wolf3D-Mac-for-DOS/r
 Watch what it looks like on a real PC [here](https://www.youtube.com/watch?v=69g_g_kB9bQ).
 
 **What's special?:**
- - Supports Wolfenstein 3D: First Encounter and Second Encounter
+ - Supports Wolfenstein 3D: First, Second and Third Encounter
  - WASD + mouselook controls
  - The palette changes when the player gets hurt or picks up an item 
+ - Automap resizing
  - Screen resizing
  - High, low and potato detail modes
  - PC speaker sound effects
@@ -45,10 +46,12 @@ Watch what it looks like on a real PC [here](https://www.youtube.com/watch?v=69g
 |Turn                 |Left & Right & mouse   |
 |Strafe               |Alt                    |
 |Strafe left and right|< & > & A & D          |
-|Automap              |Tab                    |
+|Select weapons       |1 & 2 & 3 & 4 & 5 & 6  |
 |Weapon up            |]                      |
-|Switch detail mode   |F5                     |
+|Automap              |Tab                    |
+|Resize automap       |+ & -                  |
 |Resize screen        |+ & -                  |
+|Switch detail mode   |F5                     |
 |Quit to DOS          |Esc & F10              |
 
 ## Command line arguments:
@@ -58,6 +61,7 @@ Watch what it looks like on a real PC [here](https://www.youtube.com/watch?v=69g
 |easy                 |Difficulty: Don't hurt me           |
 |normal               |Difficulty: Bring 'em on!           |
 |hard                 |Difficulty: I am DEATH incarnate!   |
+|file MW3E#.WAD       |Load custom maps                    |
 |nosound              |Disable sound effects and music     |
 |nomusic              |Disable music                       |
 |mpu401 ###           |Enable MPU-401 at port ###, e.g. 330|

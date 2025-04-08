@@ -38,9 +38,15 @@ int M_GetParmCount(void)
 }
 
 
-int M_GetParm(int p)
+int M_GetParmAsInt(int p)
 {
 	return strtol(myargv[p], NULL, 0x10);
+}
+
+
+const char* M_GetParmAsString(int p)
+{
+	return myargv[p];
 }
 
 
@@ -75,8 +81,8 @@ void InitTools(void)
 	I_InitGraphics();
 
 	GetTableMemory();			/* Get memory for far tables math tables */
-	MapListPtr = (maplist_t __far*) W_GetLumpByNum(rMapList);	/* Get the map list */
-	SongListPtr = (unsigned short __far*) W_GetLumpByNum(rSongList);
+	MapListPtr = (maplist_t __far*) W_GetMapLumpByNum(rMapList);	/* Get the map list */
+	SongListPtr = (unsigned short __far*) W_GetMapLumpByNum(rSongList);
 	WallListPtr = (unsigned short __far*) W_GetLumpByNum(MyWallList);
 }
 

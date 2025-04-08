@@ -22,9 +22,10 @@ Both versions require a VGA graphics card.
 It's based on the original Macintosh Wolfenstein 3D source release.
 
 What's special?
- - Supports Wolfenstein 3D: First Encounter and Second Encounter
+ - Supports Wolfenstein 3D: First, Second and Third Encounter
  - WASD + mouselook controls
  - The palette changes when the player gets hurt or picks up an item 
+ - Automap resizing
  - Screen resizing
  - High, low and potato detail modes
  - PC speaker sound effects
@@ -46,10 +47,12 @@ Controls:
 |Turn                 |Left & Right & mouse   |
 |Strafe               |Alt                    |
 |Strafe left and right|< & > & A & D          |
-|Automap              |Tab                    |
+|Select weapons       |1 & 2 & 3 & 4 & 5 & 6  |
 |Weapon up            |]                      |
-|Switch detail mode   |F5                     |
+|Automap              |Tab                    |
+|Resize automap       |+ & -                  |
 |Resize screen        |+ & -                  |
+|Switch detail mode   |F5                     |
 |Quit to DOS          |Esc & F10              |
 
 Command line arguments:
@@ -59,6 +62,7 @@ Command line arguments:
 |easy                 |Difficulty: Don't hurt me           |
 |normal               |Difficulty: Bring 'em on!           |
 |hard                 |Difficulty: I am DEATH incarnate!   |
+|file MW3E#.WAD       |Load custom maps                    |
 |nosound              |Disable sound effects and music     |
 |nomusic              |Disable music                       |
 |mpu401 ###           |Enable MPU-401 at port ###, e.g. 330|

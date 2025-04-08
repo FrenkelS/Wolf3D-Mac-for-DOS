@@ -816,21 +816,24 @@ void DrawSmall(Word x, Word y, Word tile)
 
 	if (!SmallFontPtr) {
 		return;
-	}	
-	x*=16;
-	y*=16;
+	}
+
+	x <<= automapzoomlevel;
+	y <<= automapzoomlevel;
 	Screenad = &VideoPointer[y * PLANEWIDTH + x];
-	ArtStart = &SmallFontPtr[tile*(16*16)];
+	ArtStart = &SmallFontPtr[tile * (16 * 16)];
 	Height = 0;
 	do {
-		Width = 16;
+		Width = 1 << automapzoomlevel;
 		do {
 			Screenad[0] = ArtStart[0];
 			++Screenad;
-			++ArtStart;
+			ArtStart += (16 >> automapzoomlevel);
 		} while (--Width);
-		Screenad+=PLANEWIDTH-16;
-	} while (++Height<16);
+		Screenad += PLANEWIDTH - (1 << automapzoomlevel);
+		ArtStart += 16 * ((16 >> automapzoomlevel) - 1);
+		Height += (16 >> automapzoomlevel);
+	} while (Height < 16);
 }
 
 

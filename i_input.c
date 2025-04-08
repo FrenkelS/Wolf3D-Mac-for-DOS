@@ -447,6 +447,11 @@ TryFirst:
 						setblocks--;
 						I_SetViewSize(setblocks);
 					}
+				} else if (playstate == EX_AUTOMAP) {
+					automapzoomlevel--;
+					if (automapzoomlevel < 2) {
+						automapzoomlevel = 2;
+					}
 				}
 				break;
 			case SC_PLUS:
@@ -454,6 +459,11 @@ TryFirst:
 					if (setblocks < 10) {
 						setblocks++;
 						I_SetViewSize(setblocks);
+					}
+				} else if (playstate == EX_AUTOMAP) {
+					automapzoomlevel++;
+					if (automapzoomlevel > 4) {
+						automapzoomlevel = 4;
 					}
 				}
 				break;

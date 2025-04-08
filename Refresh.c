@@ -123,8 +123,8 @@ void DrawAutomap(Word tx,Word ty)
 	Word NodeCount;
 	
 	NodeCount = MapPtr->numnodes;
-	maxtx = tx+(SCREENWIDTH/16);
-	maxty = ty+(SCREENHEIGHT/16);
+	maxtx = tx + (SCREENWIDTH  >> automapzoomlevel);
+	maxty = ty + (SCREENHEIGHT >> automapzoomlevel);
 	seg = (saveseg_t __far*)nodes;
 	i = 0;
 	do {
@@ -186,7 +186,7 @@ void DrawAutomap(Word tx,Word ty)
 	} while (++i<NodeCount);
 	x = viewx>>8;
 	y = viewy>>8;
-	if (x >= tx && x < maxtx && y >= ty && y<maxty) {
+	if (tx <= x && x < maxtx && ty <= y && y < maxty) {
 		DrawSmall(x-tx,y-ty,64);		/* Draw BJ's face here */
 	}
 	BlastScreen();

@@ -24,19 +24,26 @@ void SetupPlayScreen (void)
 	
 **********************************/
 
+static int clamp(int x)
+{
+	return x >= 0 ? x : 0;
+}
+
 void RunAutoMap(void)
 {
 	Word vx,vy;
 	Word Width,Height;
 	Word CenterX,CenterY;
 	Word oldjoy,newjoy;
-	
+	Word oldzoomlevel;
+
 	MakeSmallFont();				/* Make the tiny font */
 	playstate = EX_AUTOMAP;
 	vx = viewx>>8;					/* Get my center x,y */
 	vy = viewy>>8;
-	Width = (SCREENWIDTH/16);		/* Width of map in tiles */
-	Height = (SCREENHEIGHT/16);		/* Height of map in tiles */
+
+	Width  = SCREENWIDTH  >> automapzoomlevel;		/* Width of map in tiles */
+	Height = SCREENHEIGHT >> automapzoomlevel;		/* Height of map in tiles */
 	CenterX = Width/2;
 	CenterY = Height/2;
 	if (vx>=CenterX) {
@@ -49,29 +56,39 @@ void RunAutoMap(void)
 	} else {
 		vy = 0;
 	}
+
 	oldjoy = joystick1;
 	do {
 		ClearTheScreen();
 		DrawAutomap(vx,vy);
+		oldzoomlevel = automapzoomlevel;
 		do {
 			ReadSystemJoystick();
-		} while (joystick1==oldjoy);
-		oldjoy &= joystick1;
-		newjoy = joystick1 ^ oldjoy;
-		if (newjoy & (JOYPAD_START|JOYPAD_SELECT|JOYPAD_A|JOYPAD_B|JOYPAD_X|JOYPAD_Y)) {
-			playstate = EX_STILLPLAYING;
-		} 
-		if (newjoy & JOYPAD_UP && vy) {
-			--vy;
+		} while (joystick1 == oldjoy && automapzoomlevel == oldzoomlevel);
+
+		if (automapzoomlevel != oldzoomlevel) {
+			Width  = SCREENWIDTH  >> automapzoomlevel;
+			Height = SCREENHEIGHT >> automapzoomlevel;
 		}
-		if (newjoy & (JOYPAD_LFT | JOYPAD_TL) && vx) {
-			--vx;
-		}
-		if (newjoy & (JOYPAD_RGT | JOYPAD_TR) && vx<(MAPSIZE-1)) {
-			++vx;
-		}
-		if (newjoy & JOYPAD_DN && vy <(MAPSIZE-1)) {
-			++vy;
+
+		if (joystick1 != oldjoy) {
+			oldjoy &= joystick1;
+			newjoy = joystick1 ^ oldjoy;
+			if (newjoy & (JOYPAD_START|JOYPAD_SELECT|JOYPAD_A|JOYPAD_B|JOYPAD_X|JOYPAD_Y)) {
+				playstate = EX_STILLPLAYING;
+			}
+			if (newjoy & JOYPAD_UP && vy) {
+				--vy;
+			}
+			if (newjoy & (JOYPAD_LFT | JOYPAD_TL) && vx) {
+				--vx;
+			}
+			if (newjoy & (JOYPAD_RGT | JOYPAD_TR) && vx < clamp(MAPSIZE - Width)) {
+				++vx;
+			}
+			if (newjoy & JOYPAD_DN && vy < (MAPSIZE - Height)) {
+				++vy;
+			}
 		}
 	} while (playstate==EX_AUTOMAP);
 

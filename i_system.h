@@ -47,7 +47,8 @@ _Noreturn void I_Error(const char *error, ...);
 
 
 int M_GetParmCount(void);
-int M_GetParm(int p);
+int M_GetParmAsInt(int p);
+const char* M_GetParmAsString(int p);
 int M_CheckParm(char *check);
 
 
