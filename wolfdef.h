@@ -783,5 +783,6 @@ extern Word viewwidth;
 extern Word scaledviewwidth;
 extern Word viewheight;		/* Height of the viewing area */
 extern Word detailshift;
+extern Word automapzoomlevel;
 
 #endif /* __WOLFDEF__ */
