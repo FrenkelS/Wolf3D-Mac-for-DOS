@@ -52,8 +52,15 @@ static void I_SetScreenMode(uint16_t mode)
 
 void I_InitGraphics(void)
 {
+	union REGS regs;
+
 	I_SetScreenMode(0x13);
 	isGraphicsModeSet = TRUE;
+
+	// set border (overscan) color
+	regs.w.ax = 0x1001;
+	regs.h.bh = DAMAGECOLOR;
+	int86(0x10, &regs, &regs);
 
 	VideoPointer = Z_MallocStatic(1u * SCREENWIDTH * SCREENHEIGHT);
 	ViewPointer = VideoPointer;
