@@ -24,7 +24,7 @@ void SetupPlayScreen (void)
 	
 **********************************/
 
-static int clamp(int x)
+static Word clamp(int x)
 {
 	return x >= 0 ? x : 0;
 }

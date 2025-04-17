@@ -63,14 +63,7 @@ static void KillActor(actor_t *ActorPtr)
 	case CL_DKNIGHT:
 		PlaceItemType(S_G_KEY,ActorPtr);	/* Drop a key */
 		break;
-	case CL_DOG:
-	case CL_MECHAHITLER:
-	case CL_HITLER:
-	case CL_PLAYER:
-	case CL_GREENGHOST:
-	case CL_BLUEGHOST:
-	case CL_YELLOWGHOST:
-	case CL_REDGHOST:
+	default:
 		break;
 	}
 	++gamestate.killcount;		/* I killed someone! */
