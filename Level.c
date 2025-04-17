@@ -154,7 +154,22 @@ S_TRANS_DTH1,
 S_TRANS_DTH2,
 S_TRANS_DTH3,S_G_KEY,0};
 
-static Byte EnemyHits[16];
+static const Word PlayerSprs[] = {
+0};
+
+static const Word GreenGhostSprs[] = {
+S_GREEN_GHOST, 0};
+
+static const Word BlueGhostSprs[] = {
+S_BLUE_GHOST, 0};
+
+static const Word YellowGhostSprs[] = {
+S_YELLOW_GHOST, 0};
+
+static const Word RedGhostSprs[] = {
+S_RED_GHOST, 0};
+
+static Byte EnemyHits[17];
 
 static const Word *EnemySprs[] = {	/* This list MUST match class_t! */
 NaziSprs,
@@ -168,7 +183,12 @@ TransSprs,
 UberSprs,
 DKnightSprs,
 HitlerSprs,
-HitlerSprs
+HitlerSprs,
+PlayerSprs,
+GreenGhostSprs,
+BlueGhostSprs,
+YellowGhostSprs,
+RedGhostSprs
 };
 
 
@@ -213,7 +233,8 @@ TI_BLOCKMOVE,		/*S_WATER_WELL,*/
 TI_GETABLE,			/*S_FLAMETHROWER */
 TI_GETABLE,			/*S_GASCAN */
 TI_GETABLE,			/*S_LAUNCHER */
-TI_GETABLE			/*S_MISSILES */
+TI_GETABLE,			/*S_MISSILES */
+0					/*Dead guard */
 };
 
 /**********************************
@@ -238,6 +259,9 @@ static void SpawnStatic(Word x,Word y,Word shape)
 	TilePtr[0] |= staticflags[shape];
 
 	shape += S_WATER_PUDDLE;	/* Init the shape number */
+	if (shape == S_MISSILES + 1) {
+		shape = S_GUARD_DTH3;
+	}
 	WallHits[shape] = 1;		/* Load in this shape */
 	StatPtr->pic = shape;		/* Set the object's shape */
 	switch (shape) {
@@ -473,9 +497,9 @@ static void SpawnThings(void)
 			continue;
 		} else if (type<23) {	/* 19-22 */
 			SpawnPlayer(x,y,type-19);
-		} else if (type<59) {	/* 23-58 */
+		} else if (type<60) {	/* 23-59 */
 			SpawnStatic(x,y,type-23);
-		} else if (type<90) {	/* 59-89 */
+		} else if (type<90) {	/* 60-89 */
 			continue;
 		} else if (type<98) {	/* 90-97 */
 			SpawnDoor(x,y,type);
@@ -490,11 +514,11 @@ static void SpawnThings(void)
 			SpawnSecret(x,y);
 		} else if (type<108) {		/* 102-107 */
 			continue;
-		} else if (type<123) {		/* 108-122 */
+		} else if (type<125) {		/* 108-124 */
 			SpawnStand(x,y,(class_t) (type-108));
-		} else if (type<126) {		/* 123-125 */
+		} else if (type == 125) {	/* 125 */
 			continue;
-		} else if (type<140) {		/* 126-139 */
+		} else if (type<143) {		/* 126-142 */
 			SpawnAmbush(x,y,(class_t) (type-126));	
 		}
 	} while (--Count);
@@ -508,7 +532,7 @@ static void SpawnThings(void)
 				++x;
 			} while (EnemyPtr[x]);
 		}
-	} while (++Count<16);
+	} while (++Count<17);
 }
 
 /**********************************
@@ -572,7 +596,7 @@ void SetupGameLevel(void)
 /* Load a level */
 
 	ReleaseMap();				/* Free up any previous map */
-	MapPtr = W_GetLumpByNum(MapListPtr->MapRezNum+gamestate.mapon);	/* Load in the map */
+	MapPtr = W_GetMapLumpByNum(MapListPtr->MapRezNum+gamestate.mapon);	/* Load in the map */
 
 	DrawPsyched(1);		/* First stage done */
 #ifdef __BIGENDIAN__

@@ -215,7 +215,12 @@ typedef enum {		/* actor class info*/
 	CL_MECHAHITLER,
 	CL_HITLER,
 	
-	CL_PLAYER
+	CL_PLAYER,
+
+	CL_GREENGHOST,
+	CL_BLUEGHOST,
+	CL_YELLOWGHOST,
+	CL_REDGHOST
 } class_t;
 
 enum {BSPTOP,BSPBOTTOM,BSPLEFT,BSPRIGHT};	/* BSP quadrants */

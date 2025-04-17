@@ -67,6 +67,10 @@ static void KillActor(actor_t *ActorPtr)
 	case CL_MECHAHITLER:
 	case CL_HITLER:
 	case CL_PLAYER:
+	case CL_GREENGHOST:
+	case CL_BLUEGHOST:
+	case CL_YELLOWGHOST:
+	case CL_REDGHOST:
 		break;
 	}
 	++gamestate.killcount;		/* I killed someone! */
