@@ -155,7 +155,7 @@ void I_ShutdownSound(void)
 
 static Word LastSoundNum = -1;
 static Word LastPriority = -1;
-static Word soundHandle  = -1;
+static int  soundHandle  = -1;
 static uint8_t __far data[65535];
 
 void PlaySound(Word SoundNum)

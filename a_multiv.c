@@ -79,7 +79,7 @@ typedef struct VoiceNode
 	uint32_t position;
 	Boolean  Playing;
 
-	Word     handle;
+	int      handle;
 	int32_t  priority;
 
 	int16_t *LeftVolume;
@@ -154,7 +154,7 @@ static volatile VList VoicePool = { NULL, NULL };
 #define MV_MinVoiceHandle  1
 
 static int32_t MV_MixPage      = 0;
-static Word    MV_VoiceHandle  = MV_MinVoiceHandle;
+static int     MV_VoiceHandle  = MV_MinVoiceHandle;
 
 uint8_t *MV_HarshClipTable		__attribute__ ((externally_visible));
 uint8_t *MV_MixDestination		__attribute__ ((externally_visible));
@@ -382,7 +382,7 @@ static playbackstatus MV_GetNextRawBlock(VoiceNode *voice)
    Locates the voice with the specified handle.
 ---------------------------------------------------------------------*/
 
-static VoiceNode *MV_GetVoice(Word handle)
+static VoiceNode *MV_GetVoice(int handle)
 {
 	VoiceNode *voice;
 	
@@ -413,7 +413,7 @@ static VoiceNode *MV_GetVoice(Word handle)
    playing.
 ---------------------------------------------------------------------*/
 
-Boolean MV_VoicePlaying(Word handle)
+Boolean MV_VoicePlaying(int handle)
 {
 	VoiceNode *voice;
 
@@ -457,7 +457,7 @@ static void MV_KillAllVoices(void)
    Stops output of the voice associated with the specified handle.
 ---------------------------------------------------------------------*/
 
-void MV_Kill(Word handle)
+void MV_Kill(int handle)
 {
 	VoiceNode *voice;
 	uint32_t  flags;
@@ -796,7 +796,7 @@ static void MV_StopPlayback(void)
    Begin playback of sound data
 ---------------------------------------------------------------------*/
 
-Word MV_PlayRaw(uint8_t __far* ptr, Word length)
+int MV_PlayRaw(uint8_t __far* ptr, Word length)
 {
 	VoiceNode *voice;
 
