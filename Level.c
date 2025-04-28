@@ -154,22 +154,7 @@ S_TRANS_DTH1,
 S_TRANS_DTH2,
 S_TRANS_DTH3,S_G_KEY,0};
 
-static const Word PlayerSprs[] = {
-0};
-
-static const Word GreenGhostSprs[] = {
-S_GREEN_GHOST, 0};
-
-static const Word BlueGhostSprs[] = {
-S_BLUE_GHOST, 0};
-
-static const Word YellowGhostSprs[] = {
-S_YELLOW_GHOST, 0};
-
-static const Word RedGhostSprs[] = {
-S_RED_GHOST, 0};
-
-static Byte EnemyHits[17];
+static Byte EnemyHits[16];
 
 static const Word *EnemySprs[] = {	/* This list MUST match class_t! */
 NaziSprs,
@@ -183,12 +168,7 @@ TransSprs,
 UberSprs,
 DKnightSprs,
 HitlerSprs,
-HitlerSprs,
-PlayerSprs,
-GreenGhostSprs,
-BlueGhostSprs,
-YellowGhostSprs,
-RedGhostSprs
+HitlerSprs
 };
 
 
@@ -275,6 +255,31 @@ static void SpawnStatic(Word x,Word y,Word shape)
 	++numstatics;				/* I have one more item */
 }
 
+
+static void SpawnPacManGhost(Word x, Word y, class_t which)
+{
+	//TODO implement Pac-Man Ghosts
+
+	Word *TilePtr;
+	static_t *StatPtr;
+	Word shape;
+	
+	if (numstatics>=MAXSTATICS) {
+		return;				/* Oh oh!! */
+	}
+	TilePtr = &tilemap[y][x];		/* Precalc tile pointer */
+	StatPtr = &statics[numstatics];
+	StatPtr->x = (x<<FRACBITS)+0x80;	/* Set the pixel X */
+	StatPtr->y = (y<<FRACBITS)+0x80;	/* Set the pixel Y */
+	StatPtr->areanumber = TilePtr[0] & TI_NUMMASK;	/* Mask off the area number */
+
+	shape = which - CL_GREENGHOST + S_GREEN_GHOST;	/* Init the shape number */
+	WallHits[shape] = 1;		/* Load in this shape */
+	StatPtr->pic = shape;		/* Set the object's shape */
+	++numstatics;				/* I have one more item */
+}
+
+
 /**********************************
 
 	Spawn the player at x,y
@@ -305,7 +310,12 @@ static void SpawnStand(Word x,Word y,class_t which)
 	actor_t *ActorPtr;
 	Word *TilePtr;
 	Word tile;
-	
+
+	if (CL_GREENGHOST <= which && which <= CL_REDGHOST) {
+		SpawnPacManGhost(x, y, which);
+		return;
+	}
+
 	if (numactors==MAXACTORS) {	/* Too many actors already? */
 		return;					/* Exit */
 	}
@@ -348,7 +358,12 @@ static void SpawnStand(Word x,Word y,class_t which)
 static void SpawnAmbush(Word x,Word y,class_t which)
 {
 	actor_t *ActorPtr;
-	
+
+	if (CL_GREENGHOST <= which && which <= CL_REDGHOST) {
+		SpawnPacManGhost(x, y, which);
+		return;
+	}
+
 	ActorPtr = &actors[numactors];	/* Get the pointer to the new actor entry */
 	SpawnStand(x,y,which);		/* Fill in all the entries */
 	ActorPtr->flags |= FL_AMBUSH;	/* Set the ambush flag */
@@ -532,7 +547,7 @@ static void SpawnThings(void)
 				++x;
 			} while (EnemyPtr[x]);
 		}
-	} while (++Count<17);
+	} while (++Count<16);
 }
 
 /**********************************
