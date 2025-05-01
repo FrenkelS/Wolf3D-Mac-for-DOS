@@ -60,6 +60,7 @@ typedef struct
 //
 
 static FILE* fileWAD;
+static FILE* fileMapWAD;
 
 static int16_t numlumps;
 
@@ -71,7 +72,7 @@ static void __far*__far* lumpcache;
 // LUMP BASED ROUTINES.
 //
 
-#define BUFFERSIZE 512
+#define BUFFERSIZE 256
 
 static void _ffread(void __far* ptr, uint16_t size, FILE* fp)
 {
@@ -163,7 +164,18 @@ void W_Init(void)
 
 	fileWAD = fopen("MACWOLF2.WAD", "rb");
 	if (fileWAD != NULL) {
-		printf("Second");
+		int p = M_CheckParm("file");
+		if (p && p < M_GetParmCount() - 1) {
+			const char* mapfilename = M_GetParmAsString(p + 1);
+			fileMapWAD = fopen(mapfilename, "rb");
+			if (fileMapWAD != NULL) {
+				printf("Third");
+			} else {
+				I_Error("Can't open %s", mapfilename);
+			}
+		} else {
+			printf("Second");
+		}
 	} else {
 		fileWAD = fopen("MACWOLF1.WAD", "rb");
 		if (fileWAD != NULL) {
@@ -250,4 +262,29 @@ void __far* W_TryGetLumpByNum(int16_t num)
 		return W_GetLumpByNum(num);
 	else
 		return NULL;
+}
+
+
+void __far* W_GetMapLumpByNum(int16_t num)
+{
+	int32_t     infotableofs;
+	filelump_t  filelump;
+	void __far* lump;
+
+	if (fileMapWAD == NULL) {
+		return W_GetLumpByNum(num);
+	}
+
+	fseek(fileMapWAD, 8, SEEK_SET);
+	fread(&infotableofs, sizeof(int32_t), 1, fileMapWAD);
+
+	fseek(fileMapWAD, infotableofs + sizeof(filelump_t) * num, SEEK_SET);
+	fread(&filelump, sizeof(filelump_t), 1, fileMapWAD);
+
+	lump = Z_MallocStatic(filelump.size);
+
+	fseek(fileMapWAD, filelump.filepos, SEEK_SET);
+	_ffread(lump, filelump.size, fileMapWAD);
+
+	return lump;
 }

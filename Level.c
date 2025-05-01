@@ -213,7 +213,8 @@ TI_BLOCKMOVE,		/*S_WATER_WELL,*/
 TI_GETABLE,			/*S_FLAMETHROWER */
 TI_GETABLE,			/*S_GASCAN */
 TI_GETABLE,			/*S_LAUNCHER */
-TI_GETABLE			/*S_MISSILES */
+TI_GETABLE,			/*S_MISSILES */
+0					/*Dead guard */
 };
 
 /**********************************
@@ -238,6 +239,9 @@ static void SpawnStatic(Word x,Word y,Word shape)
 	TilePtr[0] |= staticflags[shape];
 
 	shape += S_WATER_PUDDLE;	/* Init the shape number */
+	if (shape == S_MISSILES + 1) {
+		shape = S_GUARD_DTH3;
+	}
 	WallHits[shape] = 1;		/* Load in this shape */
 	StatPtr->pic = shape;		/* Set the object's shape */
 	switch (shape) {
@@ -250,6 +254,31 @@ static void SpawnStatic(Word x,Word y,Word shape)
 	}
 	++numstatics;				/* I have one more item */
 }
+
+
+static void SpawnPacManGhost(Word x, Word y, class_t which)
+{
+	//TODO implement Pac-Man Ghosts
+
+	Word *TilePtr;
+	static_t *StatPtr;
+	Word shape;
+	
+	if (numstatics>=MAXSTATICS) {
+		return;				/* Oh oh!! */
+	}
+	TilePtr = &tilemap[y][x];		/* Precalc tile pointer */
+	StatPtr = &statics[numstatics];
+	StatPtr->x = (x<<FRACBITS)+0x80;	/* Set the pixel X */
+	StatPtr->y = (y<<FRACBITS)+0x80;	/* Set the pixel Y */
+	StatPtr->areanumber = TilePtr[0] & TI_NUMMASK;	/* Mask off the area number */
+
+	shape = which - CL_GREENGHOST + S_GREEN_GHOST;	/* Init the shape number */
+	WallHits[shape] = 1;		/* Load in this shape */
+	StatPtr->pic = shape;		/* Set the object's shape */
+	++numstatics;				/* I have one more item */
+}
+
 
 /**********************************
 
@@ -281,7 +310,12 @@ static void SpawnStand(Word x,Word y,class_t which)
 	actor_t *ActorPtr;
 	Word *TilePtr;
 	Word tile;
-	
+
+	if (CL_GREENGHOST <= which && which <= CL_REDGHOST) {
+		SpawnPacManGhost(x, y, which);
+		return;
+	}
+
 	if (numactors==MAXACTORS) {	/* Too many actors already? */
 		return;					/* Exit */
 	}
@@ -324,7 +358,12 @@ static void SpawnStand(Word x,Word y,class_t which)
 static void SpawnAmbush(Word x,Word y,class_t which)
 {
 	actor_t *ActorPtr;
-	
+
+	if (CL_GREENGHOST <= which && which <= CL_REDGHOST) {
+		SpawnPacManGhost(x, y, which);
+		return;
+	}
+
 	ActorPtr = &actors[numactors];	/* Get the pointer to the new actor entry */
 	SpawnStand(x,y,which);		/* Fill in all the entries */
 	ActorPtr->flags |= FL_AMBUSH;	/* Set the ambush flag */
@@ -473,9 +512,9 @@ static void SpawnThings(void)
 			continue;
 		} else if (type<23) {	/* 19-22 */
 			SpawnPlayer(x,y,type-19);
-		} else if (type<59) {	/* 23-58 */
+		} else if (type<60) {	/* 23-59 */
 			SpawnStatic(x,y,type-23);
-		} else if (type<90) {	/* 59-89 */
+		} else if (type<90) {	/* 60-89 */
 			continue;
 		} else if (type<98) {	/* 90-97 */
 			SpawnDoor(x,y,type);
@@ -490,11 +529,11 @@ static void SpawnThings(void)
 			SpawnSecret(x,y);
 		} else if (type<108) {		/* 102-107 */
 			continue;
-		} else if (type<123) {		/* 108-122 */
+		} else if (type<125) {		/* 108-124 */
 			SpawnStand(x,y,(class_t) (type-108));
-		} else if (type<126) {		/* 123-125 */
+		} else if (type == 125) {	/* 125 */
 			continue;
-		} else if (type<140) {		/* 126-139 */
+		} else if (type<143) {		/* 126-142 */
 			SpawnAmbush(x,y,(class_t) (type-126));	
 		}
 	} while (--Count);
@@ -572,7 +611,7 @@ void SetupGameLevel(void)
 /* Load a level */
 
 	ReleaseMap();				/* Free up any previous map */
-	MapPtr = W_GetLumpByNum(MapListPtr->MapRezNum+gamestate.mapon);	/* Load in the map */
+	MapPtr = W_GetMapLumpByNum(MapListPtr->MapRezNum+gamestate.mapon);	/* Load in the map */
 
 	DrawPsyched(1);		/* First stage done */
 #ifdef __BIGENDIAN__
