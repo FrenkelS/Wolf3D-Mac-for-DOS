@@ -345,35 +345,72 @@ void Z_Shutdown(void)
 }
 
 
-#if defined __DJGPP__ || defined _M_I386
-static unsigned int _dos_allocmem(unsigned int __size, unsigned int *__seg)
+#if defined __DJGPP__ || defined _M_I86
+// nothing
+#elif defined __WATCOMC__ && defined _M_I386
+typedef struct {
+	uint32_t	largest_available_free_block_in_bytes;
+	uint32_t	maximum_unlocked_page_allocation_in_pages;
+	uint32_t	maximum_locked_page_allocation_in_pages;
+	uint32_t	linear_address_space_size_in_pages;
+	uint32_t	total_number_of_unlocked_pages;
+	uint32_t	total_number_of_free_pages;
+	uint32_t	total_number_of_physical_pages;
+	uint32_t	free_linear_address_space_in_pages;
+	uint32_t	size_of_paging_file_partition_in_pages;
+	uint32_t	reserved[3];
+} __dpmi_free_mem_info;
+
+#define DPMI_INT 0x31
+
+static uint32_t _go32_dpmi_remaining_physical_memory(void)
 {
-	static uint8_t* ptr;
+	union REGS				regs;
+	struct SREGS			segregs;
+	__dpmi_free_mem_info	meminfo;
 
-	if (__size == 0xffff)
-	{
-		int32_t paragraphs = 8 * 1024 * 1024L / PARAGRAPH_SIZE;
-		uint32_t m;
-		ptr = malloc(paragraphs * PARAGRAPH_SIZE);
-
-		// align ptr
-		m = (uint32_t) ptr;
-		if ((m & (PARAGRAPH_SIZE - 1)) != 0)
-		{
-			paragraphs--;
-			while ((m & (PARAGRAPH_SIZE - 1)) != 0)
-				m = (uint32_t) ++ptr;
-		}
-
-
-		*__seg = paragraphs;
-	}
-	else
-		*__seg = D_FP_SEG(ptr);
-
-	return 0;
+	regs.w.ax = 0x500;      // get memory info
+	memset(&segregs, 0, sizeof(segregs));
+	segregs.es = D_FP_SEG(&meminfo);
+	regs.x.edi = D_FP_OFF(&meminfo);
+	int386x(DPMI_INT, &regs, &regs, &segregs);
+	return meminfo.largest_available_free_block_in_bytes;
 }
 #endif
+
+
+static uint8_t __far* I_ZoneBase(uint32_t *heapSize)
+{
+#if defined _M_I86
+	unsigned int max, segment;
+	_dos_allocmem(0xffff, &max);
+	_dos_allocmem(max, &segment);
+	*heapSize = (uint32_t)max * PARAGRAPH_SIZE;
+	return D_MK_FP(segment, 0);
+#else
+	uint32_t m;
+	uint32_t availableMemory = _go32_dpmi_remaining_physical_memory();
+	uint32_t paragraphs = availableMemory < 8 * 1024 * 1024L ? availableMemory / PARAGRAPH_SIZE : 8 * 1024 * 1024L / PARAGRAPH_SIZE;
+	uint8_t *ptr = malloc(paragraphs * PARAGRAPH_SIZE);
+	while (!ptr)
+	{
+		paragraphs--;
+		ptr = malloc(paragraphs * PARAGRAPH_SIZE);
+	}
+
+	// align ptr
+	m = (uint32_t) ptr;
+	if ((m & (PARAGRAPH_SIZE - 1)) != 0)
+	{
+		paragraphs--;
+		while ((m & (PARAGRAPH_SIZE - 1)) != 0)
+			m = (uint32_t) ++ptr;
+	}
+
+	*heapSize = paragraphs * PARAGRAPH_SIZE;
+	return ptr;
+#endif
+}
 
 
 //
@@ -382,7 +419,6 @@ static unsigned int _dos_allocmem(unsigned int __size, unsigned int *__seg)
 void Z_Init (void)
 {
 	// allocate all available conventional memory.
-	unsigned int max, segment;
 	static uint8_t __far* mainzone;
 	uint32_t heapSize;
 	uint_fast8_t i;
@@ -391,11 +427,7 @@ void Z_Init (void)
 	memblock_t __far* block;
 	segment_t ems_segment;
 
-	_dos_allocmem(0xffff, &max);
-	_dos_allocmem(max, &segment);
-	mainzone = D_MK_FP(segment, 0);
-
-	heapSize = (uint32_t)max * PARAGRAPH_SIZE;
+	mainzone = I_ZoneBase(&heapSize);
 
 	printf("Standard: %ld bytes\n", heapSize);
 
