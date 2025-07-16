@@ -371,8 +371,8 @@ static uint32_t _go32_dpmi_remaining_physical_memory(void)
 
 	regs.w.ax = 0x500;      // get memory info
 	memset(&segregs, 0, sizeof(segregs));
-	segregs.es = D_FP_SEG(&meminfo);
-	regs.x.edi = D_FP_OFF(&meminfo);
+	segregs.es = FP_SEG(&meminfo);
+	regs.x.edi = FP_OFF(&meminfo);
 	int386x(DPMI_INT, &regs, &regs, &segregs);
 	return meminfo.largest_available_free_block_in_bytes;
 }
