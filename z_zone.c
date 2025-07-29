@@ -115,8 +115,8 @@ static uint16_t emsHandle;
 static segment_t Z_InitExpandedMemory(void)
 {
 	segment_t __far* emsInterruptVectorSegment;
-	uint64_t __far* actualEmsDeviceName;
-	uint64_t expectedEmsDeviceName;
+	char __far* actualEmsDeviceName;
+	const char expectedEmsDeviceName[8] = "EMMXXXX0";
 
 	union REGS regs;
 
@@ -130,8 +130,7 @@ static segment_t Z_InitExpandedMemory(void)
 #if defined _M_I86
 	emsInterruptVectorSegment = D_MK_FP(0, EMS_INT * 4 + 2);
 	actualEmsDeviceName = D_MK_FP(*emsInterruptVectorSegment, 0x000a);
-	expectedEmsDeviceName = *(uint64_t*)"EMMXXXX0";
-	if (*actualEmsDeviceName != expectedEmsDeviceName)
+	if (_fmemcmp(actualEmsDeviceName, expectedEmsDeviceName, sizeof(expectedEmsDeviceName)) != 0)
 		return 0;
 
 	// EMS detected
@@ -192,7 +191,6 @@ static segment_t Z_InitExpandedMemory(void)
 #else
 	UNUSED(emsInterruptVectorSegment);
 	UNUSED(actualEmsDeviceName);
-	UNUSED(expectedEmsDeviceName);
 	UNUSED(regs);
 	UNUSED(emsSegment);
 	UNUSED(pageNumber);
