@@ -367,7 +367,7 @@ void TS_Dispatch(void)
    Sets the rate at which the specified task is serviced.
 ---------------------------------------------------------------------*/
 
-void TS_SetTaskRate(task *Task, int32_t rate)
+void TS_SetTaskRate(task __far* Task, int32_t rate)
 {
 	uint32_t flags = DisableInterrupts();
 

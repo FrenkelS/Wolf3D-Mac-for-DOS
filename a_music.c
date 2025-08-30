@@ -135,7 +135,7 @@ void MUSIC_StopSong(void)
    Begins playback of MIDI song.
 ---------------------------------------------------------------------*/
 
-int32_t MUSIC_PlaySong(uint8_t *song)
+int32_t MUSIC_PlaySong(uint8_t __far* song)
 {
 	int32_t status;
 

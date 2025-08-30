@@ -120,8 +120,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #define EMIDI_NUM_CONTEXTS      7
 typedef struct
    {
-   unsigned char *pos;
-   unsigned char *loopstart;
+   unsigned char __far* pos;
+   unsigned char __far* loopstart;
    short          loopcount;
    short          RunningStatus;
    unsigned       time;
@@ -138,8 +138,8 @@ typedef struct
 
 typedef struct
    {
-   unsigned char *start;
-   unsigned char *pos;
+   unsigned char __far* start;
+   unsigned char __far* pos;
 
    long           delay;
    Boolean        active;
@@ -153,13 +153,13 @@ typedef struct
    Boolean        EMIDI_VolumeChange;
    } track;
 
-static long _MIDI_ReadNumber( void *from, size_t size );
-static long _MIDI_ReadDelta( track *ptr );
+static long _MIDI_ReadNumber( void __far* from, size_t size );
+static long _MIDI_ReadDelta( track __far* ptr );
 static void _MIDI_ResetTracks( void );
 static void _MIDI_AdvanceTick( void );
-static void _MIDI_MetaEvent( track *Track );
-static void _MIDI_SysEx( track *Track );
-static Boolean _MIDI_InterpretControllerInfo(track *Track, Boolean TimeSet, int32_t channel, int32_t c1, int32_t c2);
+static void _MIDI_MetaEvent( track __far* Track );
+static void _MIDI_SysEx( track __far* Track );
+static Boolean _MIDI_InterpretControllerInfo(track __far* Track, Boolean TimeSet, int32_t channel, int32_t c1, int32_t c2);
 static void _MIDI_SendControlChange( int channel, int c1, int c2 );
 static void _MIDI_SetChannelVolume( int channel, int volume );
 static void _MIDI_SendChannelVolumes( void );
@@ -221,12 +221,12 @@ static int MIDI_Tempo = 120;
 
 static long _MIDI_ReadNumber
    (
-   void *from,
+   void __far* from,
    size_t size
    )
 
    {
-   unsigned char *FromPtr;
+   unsigned char __far* FromPtr;
    long          value;
 
    if ( size > 4 )
@@ -234,7 +234,7 @@ static long _MIDI_ReadNumber
       size = 4;
       }
 
-   FromPtr = ( unsigned char * )from;
+   FromPtr = ( unsigned char __far* )from;
 
    value = 0;
    while( size-- )
@@ -255,7 +255,7 @@ static long _MIDI_ReadNumber
 
 static long _MIDI_ReadDelta
    (
-   track *ptr
+   track __far* ptr
    )
 
    {
@@ -292,7 +292,7 @@ static void _MIDI_ResetTracks
 
    {
    int    i;
-   track *ptr;
+   track __far* ptr;
 
    _MIDI_Tick = 0;
    _MIDI_Beat = 1;
@@ -363,7 +363,7 @@ static void _MIDI_AdvanceTick
 
 static void _MIDI_SysEx
    (
-   track *Track
+   track __far* Track
    )
 
    {
@@ -382,7 +382,7 @@ static void _MIDI_SysEx
 
 static void _MIDI_MetaEvent
    (
-   track *Track
+   track __far* Track
    )
 
    {
@@ -438,9 +438,9 @@ static void _MIDI_MetaEvent
    Interprets the MIDI controller info.
 ---------------------------------------------------------------------*/
 
-static Boolean _MIDI_InterpretControllerInfo(track *Track, Boolean TimeSet, int32_t channel, int32_t c1, int32_t c2)
+static Boolean _MIDI_InterpretControllerInfo(track __far* Track, Boolean TimeSet, int32_t channel, int32_t c1, int32_t c2)
 {
-   track *trackptr;
+   track __far* trackptr;
    int tracknum;
    int loopcount;
 
@@ -629,7 +629,7 @@ static void _MIDI_ServiceRoutine(void)
    int   event;
    int   channel;
    int   command;
-   track *Track;
+   track __far* Track;
    int   tracknum;
    int   c1;
    int   c2;
@@ -983,14 +983,14 @@ void MIDI_StopSong
    Begins playback of a MIDI song.
 ---------------------------------------------------------------------*/
 
-int32_t MIDI_PlaySong(uint8_t *song)
+int32_t MIDI_PlaySong(uint8_t __far* song)
 {
    int    numtracks;
    int    format;
    long   headersize;
    long   tracklength;
-   track *CurrentTrack;
-   unsigned char *ptr;
+   track __far* CurrentTrack;
+   unsigned char __far* ptr;
 
    if ( _MIDI_SongLoaded )
       {
@@ -1002,7 +1002,7 @@ int32_t MIDI_PlaySong(uint8_t *song)
       return( MIDI_NullMidiModule );
       }
 
-   if ( *( unsigned long * )song != MIDI_HEADER_SIGNATURE )
+   if ( *( unsigned long __far* )song != MIDI_HEADER_SIGNATURE )
       {
       return( MIDI_InvalidMidiFile );
       }
@@ -1043,7 +1043,7 @@ int32_t MIDI_PlaySong(uint8_t *song)
    numtracks    = _MIDI_NumTracks;
    while( numtracks-- )
       {
-      if ( *( unsigned long * )ptr != MIDI_TRACK_SIGNATURE )
+      if ( *( unsigned long __far* )ptr != MIDI_TRACK_SIGNATURE )
          {
          Z_Free( _MIDI_TrackPtr );
 
@@ -1124,7 +1124,7 @@ static void _MIDI_InitEMIDI
    int    command;
    int    length;
    Boolean IncludeFound;
-   track *Track;
+   track __far* Track;
    int    tracknum;
    int    c1;
    int    c2;
@@ -1159,7 +1159,7 @@ static void _MIDI_InitEMIDI
       Track->EMIDI_VolumeChange  = FALSE;
       Track->EMIDI_IncludeTrack  = TRUE;
 
-      memset( Track->context, 0, sizeof( Track->context ) );
+      _fmemset( Track->context, 0, sizeof( Track->context ) );
 
       while( Track->delay > 0 )
          {

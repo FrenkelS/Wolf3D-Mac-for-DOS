@@ -52,6 +52,6 @@ int32_t MUSIC_Init(int32_t SoundCard);
 void    MUSIC_Shutdown(void);
 void    MUSIC_SetVolume(int32_t volume);
 void    MUSIC_StopSong(void);
-int32_t MUSIC_PlaySong(uint8_t *song);
+int32_t MUSIC_PlaySong(uint8_t __far* song);
 
 #endif

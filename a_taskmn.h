@@ -47,6 +47,6 @@ void TS_Shutdown(void);
 task __far* TS_ScheduleTask(void (*Function)(void), int32_t rate, int32_t priority);
 void TS_Terminate(task __far* ptr);
 void TS_Dispatch(void);
-void TS_SetTaskRate(task *Task, int32_t rate);
+void TS_SetTaskRate(task __far* Task, int32_t rate);
 
 #endif

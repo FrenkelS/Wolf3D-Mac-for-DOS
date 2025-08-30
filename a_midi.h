@@ -60,6 +60,6 @@ typedef struct
 void    MIDI_SetVolume(int32_t volume);
 void    MIDI_SetMidiFuncs(midifuncs *funcs, int32_t soundDevice);
 void    MIDI_StopSong(void);
-int32_t MIDI_PlaySong(uint8_t *song);
+int32_t MIDI_PlaySong(uint8_t __far* song);
 
 #endif

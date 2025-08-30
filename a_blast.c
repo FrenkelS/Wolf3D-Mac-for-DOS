@@ -85,8 +85,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #if defined __DJGPP__
 static _go32_dpmi_seginfo BLASTER_OldInt, BLASTER_NewInt;
-#elif defined __WATCOMC__
-static void (__interrupt *BLASTER_OldInt)(void);
+#else
+static void __interrupt __far (*BLASTER_OldInt)(void);
 #endif
 
 
@@ -198,7 +198,7 @@ static void BLASTER_DisableInterrupt(void)
 // function that switches stacks.
 static int32_t GlobalStatus;
 
-static void __interrupt BLASTER_ServiceInterrupt(void)
+static void __interrupt __far BLASTER_ServiceInterrupt(void)
 {
 	// Acknowledge interrupt
 	// Check if this is this an SB16 or newer
