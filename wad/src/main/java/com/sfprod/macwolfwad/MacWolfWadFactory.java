@@ -539,9 +539,9 @@ public class MacWolfWadFactory {
 	 */
 	private void addMusic(Episode episode) {
 		Lump genmidi = new Lump("GENMIDI", getBytes("GENMIDI.OP2"));
-		Lump title = new Lump("Title", getBytes("01 - Title.mid"));
-		Lump plodding = new Lump("Plodding", getBytes("02 - Plodding.mid"));
-		Lump unleashed = new Lump("Unleashed", getBytes("07 - Unleashed.mid"));
+		Lump title = new Lump("Title", getBytes("MIDI/01 - Title.mid"));
+		Lump plodding = new Lump("Plodding", getBytes("MIDI/02 - Plodding.mid"));
+		Lump unleashed = new Lump("Unleashed", getBytes("MIDI/07 - Unleashed.mid"));
 
 		wadFile.setLump(57, createTimbreBank(genmidi));
 
@@ -553,10 +553,10 @@ public class MacWolfWadFactory {
 		wadFile.setLump(68, title);
 
 		if (episode != Episode.FIRST_ENCOUNTER) {
-			Lump rocked = new Lump("Rocked", getBytes("03 - Rocked.mid"));
-			Lump original = new Lump("Original", getBytes("04 - Original.mid"));
-			Lump doom = new Lump("Doom", getBytes("05 - Doom.mid"));
-			Lump grunge = new Lump("Grunge", getBytes("06 - Grunge.mid"));
+			Lump rocked = new Lump("Rocked", getBytes("MIDI/03 - Rocked.mid"));
+			Lump original = new Lump("Original", getBytes("MIDI/04 - Original.mid"));
+			Lump doom = new Lump("Doom", getBytes("MIDI/05 - Doom.mid"));
+			Lump grunge = new Lump("Grunge", getBytes("MIDI/06 - Grunge.mid"));
 
 			wadFile.setLump(58, rocked);
 			wadFile.setLump(59, original);
