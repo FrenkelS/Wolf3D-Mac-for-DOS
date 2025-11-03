@@ -4,9 +4,14 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.nio.file.DirectoryStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import com.sfprod.utils.NumberUtils;
 
@@ -33,11 +38,6 @@ public class MacWolfWadFactory {
 
 	private WadFile wadFile;
 
-	public static void main(String... args) {
-		MacWolfWadFactory macWolfWadFactory = new MacWolfWadFactory();
-		macWolfWadFactory.createWad(Episode.FIRST_ENCOUNTER);
-	}
-
 	static byte[] getBytes(String filename) {
 		try {
 			return MacWolfWadFactory.class.getResourceAsStream('/' + filename).readAllBytes();
@@ -46,15 +46,57 @@ public class MacWolfWadFactory {
 		}
 	}
 
-	void createWad(Episode episode) {
-		ResourceFile resourceFile = new ResourceFile(episode);
+	Map<String, ResourceFile> identifyInput() {
+		try (DirectoryStream<Path> stream = Files.newDirectoryStream(Path.of("src/main/resources/input"))) {
+			Map<String, ResourceFile> resources = new HashMap<>();
 
+			for (Path path : stream) {
+				String fileName = path.getFileName().toString();
+				if (Files.size(path) <= 8) {
+					System.out.println("Can't process " + fileName);
+				} else {
+					ResourceFile resourceFile;
+
+					byte[] bytes = Files.readAllBytes(path);
+					ByteBuffer byteBuffer = ByteBuffer.wrap(bytes);
+
+					int magicNumber = byteBuffer.getInt();
+					int versionNumber = byteBuffer.getInt();
+					if (magicNumber == 0x00051607 && versionNumber == 0x00020000) {
+						AppleDoubleFile appleDoubleFile = new AppleDoubleFile(bytes);
+						resourceFile = appleDoubleFile.getResourceFile();
+						System.out.println(
+								fileName + " is an AppleDouble file containing " + resourceFile.getContentType());
+					} else {
+						resourceFile = new ResourceFile(bytes);
+						System.out
+								.println(fileName + " is a Resource file containing " + resourceFile.getContentType());
+					}
+					resources.put(fileName, resourceFile);
+				}
+			}
+
+			return resources;
+		} catch (IOException e) {
+			throw new UncheckedIOException(e);
+		}
+	}
+
+	void createWad(ResourceFile resourceFile) {
+		createWad(resourceFile, (Type) null);
+	}
+
+	void createWad(ResourceFile resourceFile, ResourceFile mapResourceFile) {
+		Type mapBrgr = mapResourceFile.getType("BRGR");
+		createWad(resourceFile, mapBrgr);
+	}
+
+	private void createWad(ResourceFile resourceFile, Type mapBrgr) {
 		Type brgr = resourceFile.getType("BRGR");
-		Type mapBrgr = getMapBrgr(episode);
 		wadFile = new WadFile(brgr.calculateMaxId() + 1);
 		processBurger(brgr, mapBrgr);
 
-		addMusic(episode);
+		addMusic(resourceFile.getContentType());
 
 		processCompressedSound(resourceFile.getType("csnd"));
 		processUncompressedSound(resourceFile.getType("snd "));
@@ -67,12 +109,10 @@ public class MacWolfWadFactory {
 		wadFile.removeLump(127); // New Game Pal
 		wadFile.removeLump(199); // Pause shape
 
-		wadFile.saveWadFile(episode);
+		wadFile.saveWadFile(resourceFile.getContentType().getOutputFilename());
 	}
 
-	void createMapWad(String inputFilename, String outputFilename) {
-		ResourceFile resourceFile = new ResourceFile(inputFilename);
-
+	void createMapWad(ResourceFile resourceFile, String outputFilename) {
 		Type brgr = resourceFile.getType("BRGR");
 		wadFile = new WadFile(brgr.calculateMaxId() + 1);
 
@@ -95,15 +135,6 @@ public class MacWolfWadFactory {
 		wadFile.removeLump(rGamePal);
 
 		wadFile.saveWadFile(outputFilename);
-	}
-
-	private Type getMapBrgr(Episode episode) {
-		if (episode != Episode.THIRD_ENCOUNTER) {
-			return null;
-		}
-
-		ResourceFile resourceFile = new ResourceFile(Episode.SECOND_ENCOUNTER_SEPARATE_MAPS_FILENAME);
-		return resourceFile.getType("BRGR");
 	}
 
 	private void processBurger(Type brgr, Type mapBrgr) {
@@ -513,6 +544,7 @@ public class MacWolfWadFactory {
 		byte[] empty = { 1, 0, 0, 0, 0, 0, 0 };
 
 		int i = 151;
+		// Create priorities array for i_aud16.c and i_aud32.c
 		System.out.println("static const Word priorities[NUMSOUNDS] = {");
 		System.out.println("\t0, // SND_NOSOUND");
 		for (PcSpeaker sfx : sfxs) {
@@ -537,7 +569,7 @@ public class MacWolfWadFactory {
 	 *      "https://www.vgmpf.com/Wiki/index.php/Wolfenstein_3D_(MAC)">Video Game
 	 *      Music Preservation Foundation - Wolfenstein 3D (MAC)</a>
 	 */
-	private void addMusic(Episode episode) {
+	private void addMusic(ContentType contentType) {
 		Lump genmidi = new Lump("GENMIDI", getBytes("GENMIDI.OP2"));
 		Lump title = new Lump("Title", getBytes("MIDI/01 - Title.mid"));
 		Lump plodding = new Lump("Plodding", getBytes("MIDI/02 - Plodding.mid"));
@@ -552,7 +584,7 @@ public class MacWolfWadFactory {
 
 		wadFile.setLump(68, title);
 
-		if (episode != Episode.FIRST_ENCOUNTER) {
+		if (contentType == ContentType.SECOND_ENCOUNTER || contentType == ContentType.THIRD_ENCOUNTER) {
 			Lump rocked = new Lump("Rocked", getBytes("MIDI/03 - Rocked.mid"));
 			Lump original = new Lump("Original", getBytes("MIDI/04 - Original.mid"));
 			Lump doom = new Lump("Doom", getBytes("MIDI/05 - Doom.mid"));

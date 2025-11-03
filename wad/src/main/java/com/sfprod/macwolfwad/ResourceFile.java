@@ -14,14 +14,16 @@ import com.sfprod.utils.NumberUtils;
  */
 class ResourceFile {
 
+	private final ContentType contentType;
 	private final List<Type> types;
 
-	ResourceFile(Episode episode) {
-		this(episode.getInputFilename());
+	ResourceFile(String filename) {
+		this(MacWolfWadFactory.getBytes(filename));
 	}
 
-	ResourceFile(String filename) {
-		byte[] bytes = MacWolfWadFactory.getBytes(filename);
+	ResourceFile(byte[] bytes) {
+		this.contentType = ContentType.determineContentType(bytes.length);
+
 		ByteBuffer byteBuffer = ByteBuffer.wrap(bytes);
 		int resourceDataOffset = byteBuffer.getInt();
 		int resourceMapOffset = byteBuffer.getInt();
@@ -90,6 +92,10 @@ class ResourceFile {
 				resource.setData(data);
 			}
 		}
+	}
+
+	ContentType getContentType() {
+		return contentType;
 	}
 
 	List<Type> getTypes() {

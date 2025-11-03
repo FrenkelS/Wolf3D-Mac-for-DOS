@@ -1,16 +1,16 @@
 package com.sfprod.macwolfwad;
 
-import static com.sfprod.macwolfwad.ResourceFileTest.assumeEpisodeExists;
-import static com.sfprod.macwolfwad.ResourceFileTest.assumeFileExists;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.zip.CRC32;
 
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.CsvSource;
 
 /**
  * This class tests {@link MacWolfWadFactory}
@@ -18,67 +18,69 @@ import org.junit.jupiter.params.provider.CsvSource;
 class MacWolfWadFactoryTest {
 
 	@Test
-	void createWadFirstEncounter() throws Exception {
-		Episode episode = Episode.FIRST_ENCOUNTER;
-
+	void identifyInput() throws Exception {
 		MacWolfWadFactory macWolfWadFactory = new MacWolfWadFactory();
-		macWolfWadFactory.createWad(episode);
+		Map<String, ResourceFile> resources = macWolfWadFactory.identifyInput();
 
-		CRC32 crc32 = new CRC32();
-		crc32.update(Files.readAllBytes(Path.of("target", episode.getOutputFilename())));
+		List<ResourceFile> firstAndSecondEncounter = resources.values().stream()
+				.filter(r -> r.getContentType() == ContentType.FIRST_ENCOUNTER
+						|| r.getContentType() == ContentType.SECOND_ENCOUNTER)
+				.toList();
 
-		assertEquals("1103622D", Long.toHexString(crc32.getValue()).toUpperCase());
+		assertFalse(firstAndSecondEncounter.isEmpty());
+
+		for (ResourceFile encounter : firstAndSecondEncounter) {
+			macWolfWadFactory.createWad(encounter);
+
+			CRC32 crc32 = new CRC32();
+			crc32.update(Files.readAllBytes(Path.of("target", encounter.getContentType().getOutputFilename())));
+
+			assertEquals(encounter.getContentType().getCrc32(), Long.toHexString(crc32.getValue()).toUpperCase());
+		}
+
+		Optional<ResourceFile> optionalThirdEncounter = findResourceFile(resources, ContentType.THIRD_ENCOUNTER);
+		Optional<ResourceFile> optionalSecondEncounterMaps = findResourceFile(resources,
+				ContentType.SECOND_ENCOUNTER_MAPS);
+		if (optionalThirdEncounter.isPresent() && optionalSecondEncounterMaps.isPresent()) {
+			ResourceFile thirdEncounter = optionalThirdEncounter.get();
+			macWolfWadFactory.createWad(thirdEncounter, optionalSecondEncounterMaps.get());
+
+			CRC32 crc32 = new CRC32();
+			crc32.update(Files.readAllBytes(Path.of("target", thirdEncounter.getContentType().getOutputFilename())));
+
+			assertEquals(thirdEncounter.getContentType().getCrc32(), Long.toHexString(crc32.getValue()).toUpperCase());
+		}
+
+		List<ResourceFile> thirdEncounterEpisodes = resources.values().stream()
+				.filter(r -> r.getContentType() == ContentType.THIRD_ENCOUNTER_EPISODE1_MAPS
+						|| r.getContentType() == ContentType.THIRD_ENCOUNTER_EPISODE2_MAPS
+						|| r.getContentType() == ContentType.THIRD_ENCOUNTER_EPISODE3_MAPS
+						|| r.getContentType() == ContentType.THIRD_ENCOUNTER_EPISODE4_MAPS
+						|| r.getContentType() == ContentType.THIRD_ENCOUNTER_EPISODE5_MAPS
+						|| r.getContentType() == ContentType.THIRD_ENCOUNTER_EPISODE6_MAPS)
+				.toList();
+		for (ResourceFile thirdEncounterEpisode : thirdEncounterEpisodes) {
+			macWolfWadFactory.createMapWad(thirdEncounterEpisode,
+					thirdEncounterEpisode.getContentType().getOutputFilename());
+
+			CRC32 crc32 = new CRC32();
+			crc32.update(
+					Files.readAllBytes(Path.of("target", thirdEncounterEpisode.getContentType().getOutputFilename())));
+
+			assertEquals(thirdEncounterEpisode.getContentType().getCrc32(),
+					Long.toHexString(crc32.getValue()).toUpperCase());
+		}
+
+		List<ResourceFile> unknownMaps = resources.values().stream()
+				.filter(r -> r.getContentType() == ContentType.UNKNOWN_MAPS).toList();
+		int i = 1;
+		for (ResourceFile unknownMap : unknownMaps) {
+			macWolfWadFactory.createMapWad(unknownMap, "MAPS" + i + ".WAD");
+			i++;
+		}
 	}
 
-	@Test
-	void createWadSecondEncounter() throws Exception {
-		Episode episode = Episode.SECOND_ENCOUNTER;
-
-		assumeEpisodeExists(episode);
-
-		MacWolfWadFactory macWolfWadFactory = new MacWolfWadFactory();
-		macWolfWadFactory.createWad(episode);
-
-		CRC32 crc32 = new CRC32();
-		crc32.update(Files.readAllBytes(Path.of("target", episode.getOutputFilename())));
-
-		assertEquals("40698D57", Long.toHexString(crc32.getValue()).toUpperCase());
-	}
-
-	@Test
-	void createWadThirdEncounter() throws Exception {
-		Episode episode = Episode.THIRD_ENCOUNTER;
-
-		assumeEpisodeExists(episode);
-
-		MacWolfWadFactory macWolfWadFactory = new MacWolfWadFactory();
-		macWolfWadFactory.createWad(episode);
-
-		CRC32 crc32 = new CRC32();
-		crc32.update(Files.readAllBytes(Path.of("target", episode.getOutputFilename())));
-
-		assertEquals("FA11B20B", Long.toHexString(crc32.getValue()).toUpperCase());
-	}
-
-	@ParameterizedTest
-	@CsvSource({ //
-			"1 Escape From Wolfenstein, BED89984", //
-			"2 Operation-Eisenfaust, 71710DDA", //
-			"'3 Die, Führer, Die!', 7DE52050", //
-			"4 A Dark Secret, 754DF1FA", //
-			"5 Trail of the Madman, E1D5D0E8", //
-			"6 Confrontation, 52284BCE" })
-	void createMapWadThirdEncounter(String inputFilename, String checksum) throws Exception {
-		assumeFileExists(inputFilename);
-
-		String outputFilename = "MW3E" + inputFilename.charAt(0) + ".WAD";
-
-		MacWolfWadFactory macWolfWadFactory = new MacWolfWadFactory();
-		macWolfWadFactory.createMapWad(inputFilename, outputFilename);
-
-		CRC32 crc32 = new CRC32();
-		crc32.update(Files.readAllBytes(Path.of("target", outputFilename)));
-
-		assertEquals(checksum, Long.toHexString(crc32.getValue()).toUpperCase());
+	private Optional<ResourceFile> findResourceFile(Map<String, ResourceFile> resources, ContentType contentType) {
+		return resources.values().stream().filter(r -> r.getContentType() == contentType).findAny();
 	}
 }

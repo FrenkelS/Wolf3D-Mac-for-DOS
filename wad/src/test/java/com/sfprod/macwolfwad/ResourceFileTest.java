@@ -2,15 +2,12 @@ package com.sfprod.macwolfwad;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assumptions.assumeTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
-import java.net.URL;
 import java.util.List;
-import java.util.zip.CRC32;
+import java.util.Map;
 
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
 
 class ResourceFileTest {
 
@@ -29,172 +26,167 @@ class ResourceFileTest {
 			"ALRT", "DITL", "PICT", "vers", "BNDL", "SMOD", "MDRV", "hfdr", "hmnu", "TEXT", "SONG", "CODE", "XREF",
 			"DATA", "SIZE", "cfrg");
 
+	private final Map<String, ResourceFile> resources = new MacWolfWadFactory().identifyInput();
+
 	@Test
 	void getTypesFirstEncounter() {
-		ResourceFile resourceFile = new ResourceFile(Episode.FIRST_ENCOUNTER);
-		List<Type> types = resourceFile.getTypes();
-		assertEquals(37, types.size());
+		List<ResourceFile> firstEncounters = resources.values().stream()
+				.filter(r -> r.getContentType() == ContentType.FIRST_ENCOUNTER).toList();
 
-		assertEquals(FIRST_ENCOUNTER_TYPES, types.stream().map(Type::type).toList());
+		assertFalse(firstEncounters.isEmpty());
 
-		Type brgr = resourceFile.getType("BRGR");
-		assertEquals(128, brgr.resourceCount());
-		assertEquals(129, brgr.resourceList().size());
-		assertEquals(593, brgr.calculateMaxId());
+		for (ResourceFile resourceFile : firstEncounters) {
+			List<Type> types = resourceFile.getTypes();
+			assertEquals(37, types.size());
 
-		Type csnd = resourceFile.getType("csnd");
-		assertEquals(42, csnd.resourceCount());
-		assertEquals(43, csnd.resourceList().size());
+			assertEquals(FIRST_ENCOUNTER_TYPES, types.stream().map(Type::type).toList());
 
-		Type snd = resourceFile.getType("snd ");
-		assertEquals(2, snd.resourceCount());
-		assertEquals(3, snd.resourceList().size());
+			Type brgr = resourceFile.getType("BRGR");
+			assertEquals(128, brgr.resourceCount());
+			assertEquals(129, brgr.resourceList().size());
+			assertEquals(593, brgr.calculateMaxId());
 
-		List<Resource> uncompressedSounds = snd.resourceList().stream().filter(r -> r.id() < 10000).toList();
-		assertEquals(0, uncompressedSounds.size());
+			Type csnd = resourceFile.getType("csnd");
+			assertEquals(42, csnd.resourceCount());
+			assertEquals(43, csnd.resourceList().size());
+
+			Type snd = resourceFile.getType("snd ");
+			assertEquals(2, snd.resourceCount());
+			assertEquals(3, snd.resourceList().size());
+
+			List<Resource> uncompressedSounds = snd.resourceList().stream().filter(r -> r.id() < 10000).toList();
+			assertEquals(0, uncompressedSounds.size());
+		}
 	}
 
 	@Test
 	void getTypesSecondEncounter() {
-		Episode episode = Episode.SECOND_ENCOUNTER;
+		List<ResourceFile> secondEncounters = resources.values().stream()
+				.filter(r -> r.getContentType() == ContentType.SECOND_ENCOUNTER).toList();
 
-		assumeEpisodeExists(episode);
+		for (ResourceFile resourceFile : secondEncounters) {
+			List<Type> types = resourceFile.getTypes();
+			assertEquals(35, types.size());
 
-		ResourceFile resourceFile = new ResourceFile(episode);
-		List<Type> types = resourceFile.getTypes();
-		assertEquals(35, types.size());
+			assertEquals(SECOND_ENCOUNTER_TYPES, types.stream().map(Type::type).toList());
 
-		assertEquals(SECOND_ENCOUNTER_TYPES, types.stream().map(Type::type).toList());
+			Type brgr = resourceFile.getType("BRGR");
+			assertEquals(257, brgr.resourceCount());
+			assertEquals(258, brgr.resourceList().size());
+			assertEquals(597, brgr.calculateMaxId());
 
-		Type brgr = resourceFile.getType("BRGR");
-		assertEquals(257, brgr.resourceCount());
-		assertEquals(258, brgr.resourceList().size());
-		assertEquals(597, brgr.calculateMaxId());
+			Type csnd = resourceFile.getType("csnd");
+			assertEquals(55, csnd.resourceCount());
+			assertEquals(56, csnd.resourceList().size());
 
-		Type csnd = resourceFile.getType("csnd");
-		assertEquals(55, csnd.resourceCount());
-		assertEquals(56, csnd.resourceList().size());
+			Type snd = resourceFile.getType("snd ");
+			assertEquals(5, snd.resourceCount());
+			assertEquals(6, snd.resourceList().size());
 
-		Type snd = resourceFile.getType("snd ");
-		assertEquals(5, snd.resourceCount());
-		assertEquals(6, snd.resourceList().size());
+			List<Resource> uncompressedSounds = snd.resourceList().stream().filter(r -> r.id() < 10000).toList();
+			assertEquals(1, uncompressedSounds.size());
 
-		List<Resource> uncompressedSounds = snd.resourceList().stream().filter(r -> r.id() < 10000).toList();
-		assertEquals(1, uncompressedSounds.size());
-
-		Resource uncompressedSound = uncompressedSounds.getFirst();
-		assertEquals(146, uncompressedSound.id());
-		assertArrayEquals("ROCKET4.AIF".getBytes(), uncompressedSound.getName());
+			Resource uncompressedSound = uncompressedSounds.getFirst();
+			assertEquals(146, uncompressedSound.id());
+			assertArrayEquals("ROCKET4.AIF".getBytes(), uncompressedSound.getName());
+		}
 	}
 
 	@Test
 	void getTypesThirdEncounter() {
-		Episode episode = Episode.THIRD_ENCOUNTER;
+		List<ResourceFile> thirdEncounters = resources.values().stream()
+				.filter(r -> r.getContentType() == ContentType.THIRD_ENCOUNTER).toList();
 
-		assumeEpisodeExists(episode);
+		for (ResourceFile resourceFile : thirdEncounters) {
+			List<Type> types = resourceFile.getTypes();
+			assertEquals(35, types.size());
 
-		ResourceFile resourceFile = new ResourceFile(episode);
-		List<Type> types = resourceFile.getTypes();
-		assertEquals(35, types.size());
+			assertEquals(THIRD_ENCOUNTER_TYPES, types.stream().map(Type::type).toList());
 
-		assertEquals(THIRD_ENCOUNTER_TYPES, types.stream().map(Type::type).toList());
+			Type brgr = resourceFile.getType("BRGR");
+			assertEquals(232, brgr.resourceCount());
+			assertEquals(233, brgr.resourceList().size());
+			assertEquals(601, brgr.calculateMaxId());
 
-		Type brgr = resourceFile.getType("BRGR");
-		assertEquals(232, brgr.resourceCount());
-		assertEquals(233, brgr.resourceList().size());
-		assertEquals(601, brgr.calculateMaxId());
+			Type csnd = resourceFile.getType("csnd");
+			assertEquals(55, csnd.resourceCount());
+			assertEquals(56, csnd.resourceList().size());
 
-		Type csnd = resourceFile.getType("csnd");
-		assertEquals(55, csnd.resourceCount());
-		assertEquals(56, csnd.resourceList().size());
+			Type snd = resourceFile.getType("snd ");
+			assertEquals(5, snd.resourceCount());
+			assertEquals(6, snd.resourceList().size());
 
-		Type snd = resourceFile.getType("snd ");
-		assertEquals(5, snd.resourceCount());
-		assertEquals(6, snd.resourceList().size());
+			List<Resource> uncompressedSounds = snd.resourceList().stream().filter(r -> r.id() < 10000).toList();
+			assertEquals(1, uncompressedSounds.size());
 
-		List<Resource> uncompressedSounds = snd.resourceList().stream().filter(r -> r.id() < 10000).toList();
-		assertEquals(1, uncompressedSounds.size());
-
-		Resource uncompressedSound = uncompressedSounds.getFirst();
-		assertEquals(146, uncompressedSound.id());
-		assertArrayEquals("ROCKET4.AIF".getBytes(), uncompressedSound.getName());
+			Resource uncompressedSound = uncompressedSounds.getFirst();
+			assertEquals(146, uncompressedSound.id());
+			assertArrayEquals("ROCKET4.AIF".getBytes(), uncompressedSound.getName());
+		}
 	}
 
 	@Test
 	void getTypesSecondEncounterSeparateMaps() {
-		String filename = Episode.SECOND_ENCOUNTER_SEPARATE_MAPS_FILENAME;
-		assumeFileExists(filename);
+		List<ResourceFile> secondEncounterMaps = resources.values().stream()
+				.filter(r -> r.getContentType() == ContentType.SECOND_ENCOUNTER_MAPS).toList();
 
-		ResourceFile resourceFile = new ResourceFile(filename);
-		List<Type> types = resourceFile.getTypes();
-		assertEquals(2, types.size());
+		for (ResourceFile resourceFile : secondEncounterMaps) {
+			List<Type> types = resourceFile.getTypes();
+			assertEquals(2, types.size());
 
-		assertEquals(List.of("BRGR", "PICT"), types.stream().map(Type::type).toList());
+			assertEquals(List.of("BRGR", "PICT"), types.stream().map(Type::type).toList());
 
-		Type brgr = resourceFile.getType("BRGR");
-		assertEquals(32, brgr.resourceCount());
-		assertEquals(33, brgr.resourceList().size());
-		assertEquals(229, brgr.calculateMaxId());
+			Type brgr = resourceFile.getType("BRGR");
+			assertEquals(32, brgr.resourceCount());
+			assertEquals(33, brgr.resourceList().size());
+			assertEquals(229, brgr.calculateMaxId());
 
-		List<String> resourceNames = brgr.resourceList().stream().map(Resource::getName).map(String::new).toList();
-		assertEquals(List.of("Sound effect list", "Map list", "Music List", "Map0", "Map1", "Map2"),
-				resourceNames.subList(0, 6));
-		assertEquals("Map 5", resourceNames.get(8));
-		assertEquals("Map 10", resourceNames.get(13));
-		assertEquals("Map 15", resourceNames.get(18));
-		assertEquals("Map 20", resourceNames.get(23));
-		assertEquals("Map 25", resourceNames.get(28));
-	}
-
-	@ParameterizedTest
-	@ValueSource(strings = { "1 Escape From Wolfenstein", "2 Operation-Eisenfaust", "3 Die, Führer, Die!",
-			"4 A Dark Secret", "5 Trail of the Madman", "6 Confrontation" })
-	void getTypesThirdEncounterMaps(String filename) {
-		assumeFileExists(filename);
-
-		ResourceFile resourceFile = new ResourceFile(filename);
-		List<Type> types = resourceFile.getTypes();
-		assertEquals(2, types.size());
-
-		assertEquals(List.of("BRGR", "PICT"), types.stream().map(Type::type).toList());
-
-		Type brgr = resourceFile.getType("BRGR");
-		assertEquals(15, brgr.resourceCount());
-		assertEquals(16, brgr.resourceList().size());
-		assertEquals(209, brgr.calculateMaxId());
-
-		List<String> resourceNames = brgr.resourceList().stream().map(Resource::getName).map(String::new).toList();
-		assertEquals(List.of("WallList", "GamePal", "Sound effect list", "Signature", "Map list"),
-				resourceNames.subList(0, 5));
-
-		if ("Map0".equals(resourceNames.get(5))) {
-			assertEquals("Map0", resourceNames.get(5));
-			assertEquals("Map1", resourceNames.get(6));
-			assertEquals("Map2", resourceNames.get(7));
-		} else {
-			assertEquals("Map 0", resourceNames.get(5));
-		}
-		assertEquals("Map 5", resourceNames.get(10));
-		assertEquals("Music List", resourceNames.get(15));
-	}
-
-	static void assumeEpisodeExists(Episode episode) {
-		assumeFileExists(episode.getInputFilename());
-		byte[] bytes = MacWolfWadFactory.getBytes(episode.getInputFilename());
-
-		CRC32 crc32 = new CRC32();
-		crc32.update(bytes);
-
-		assumeTrue(episode.getCrc().equals(Long.toHexString(crc32.getValue()).toUpperCase()));
-
-		URL secondEncounterSeparateMaps = ResourceFileTest.class
-				.getResource('/' + Episode.SECOND_ENCOUNTER_SEPARATE_MAPS_FILENAME);
-		if (episode == Episode.THIRD_ENCOUNTER) {
-			assumeTrue(secondEncounterSeparateMaps != null);
+			List<String> resourceNames = brgr.resourceList().stream().map(Resource::getName).map(String::new).toList();
+			assertEquals(List.of("Sound effect list", "Map list", "Music List", "Map0", "Map1", "Map2"),
+					resourceNames.subList(0, 6));
+			assertEquals("Map 5", resourceNames.get(8));
+			assertEquals("Map 10", resourceNames.get(13));
+			assertEquals("Map 15", resourceNames.get(18));
+			assertEquals("Map 20", resourceNames.get(23));
+			assertEquals("Map 25", resourceNames.get(28));
 		}
 	}
 
-	static void assumeFileExists(String filename) {
-		assumeTrue(ResourceFileTest.class.getResource('/' + filename) != null);
+	@Test
+	void getTypesThirdEncounterEpisodes() {
+		List<ResourceFile> thirdEncounterEpisodes = resources.values().stream()
+				.filter(r -> r.getContentType() == ContentType.THIRD_ENCOUNTER_EPISODE1_MAPS
+						|| r.getContentType() == ContentType.THIRD_ENCOUNTER_EPISODE2_MAPS
+						|| r.getContentType() == ContentType.THIRD_ENCOUNTER_EPISODE3_MAPS
+						|| r.getContentType() == ContentType.THIRD_ENCOUNTER_EPISODE4_MAPS
+						|| r.getContentType() == ContentType.THIRD_ENCOUNTER_EPISODE5_MAPS
+						|| r.getContentType() == ContentType.THIRD_ENCOUNTER_EPISODE6_MAPS)
+				.toList();
+		for (ResourceFile resourceFile : thirdEncounterEpisodes) {
+			List<Type> types = resourceFile.getTypes();
+			assertEquals(2, types.size());
+
+			assertEquals(List.of("BRGR", "PICT"), types.stream().map(Type::type).toList());
+
+			Type brgr = resourceFile.getType("BRGR");
+			assertEquals(15, brgr.resourceCount());
+			assertEquals(16, brgr.resourceList().size());
+			assertEquals(209, brgr.calculateMaxId());
+
+			List<String> resourceNames = brgr.resourceList().stream().map(Resource::getName).map(String::new).toList();
+			assertEquals(List.of("WallList", "GamePal", "Sound effect list", "Signature", "Map list"),
+					resourceNames.subList(0, 5));
+
+			if ("Map0".equals(resourceNames.get(5))) {
+				assertEquals("Map0", resourceNames.get(5));
+				assertEquals("Map1", resourceNames.get(6));
+				assertEquals("Map2", resourceNames.get(7));
+			} else {
+				assertEquals("Map 0", resourceNames.get(5));
+			}
+			assertEquals("Map 5", resourceNames.get(10));
+			assertEquals("Music List", resourceNames.get(15));
+		}
 	}
+
 }

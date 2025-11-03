@@ -27,10 +27,6 @@ class WadFile {
 		}
 	}
 
-	void saveWadFile(Episode episode) {
-		saveWadFile(episode.getOutputFilename());
-	}
-
 	void saveWadFile(String outputFilename) {
 		int filepos = 4 + 4 + 4 + lumps.size() * (4 + 4 + 8);
 		int filesize = filepos + lumps.stream().mapToInt(Lump::length).sum();
