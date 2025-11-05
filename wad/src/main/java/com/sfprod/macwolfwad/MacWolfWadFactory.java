@@ -52,7 +52,8 @@ public class MacWolfWadFactory {
 
 			for (Path path : stream) {
 				String fileName = path.getFileName().toString();
-				if (Files.size(path) <= 8) {
+
+				if (!Files.isRegularFile(path) || Files.size(path) <= 8) {
 					System.out.println("Can't process " + fileName);
 				} else {
 					ResourceFile resourceFile;
