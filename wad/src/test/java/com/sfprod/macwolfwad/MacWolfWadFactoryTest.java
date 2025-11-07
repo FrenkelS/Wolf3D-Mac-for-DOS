@@ -49,6 +49,10 @@ class MacWolfWadFactoryTest {
 			crc32.update(Files.readAllBytes(Path.of("target", thirdEncounter.getContentType().getOutputFilename())));
 
 			assertEquals(thirdEncounter.getContentType().getCrc32(), Long.toHexString(crc32.getValue()).toUpperCase());
+		} else if (optionalThirdEncounter.isPresent()) {
+			System.out.println("Third Encounter found, but no Second Encounter maps");
+		} else if (optionalSecondEncounterMaps.isPresent()) {
+			System.out.println("Second Encounter maps found, but no Third Encounter");
 		}
 
 		List<ResourceFile> thirdEncounterEpisodes = resources.values().stream()
