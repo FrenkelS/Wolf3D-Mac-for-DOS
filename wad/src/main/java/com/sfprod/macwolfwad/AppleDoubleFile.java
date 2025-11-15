@@ -6,16 +6,21 @@ import java.util.List;
 
 class AppleDoubleFile {
 
+	private static final int MAGIC_NUMBER = 0x00051607;
+	private static final int VERSION_NUMBER = 0x00020000;
+
 	private final ResourceFile resourceFile;
 
 	AppleDoubleFile(byte[] bytes) {
+		assert isAppleDouble(bytes);
+
 		ByteBuffer byteBuffer = ByteBuffer.wrap(bytes);
 
 		int magicNumber = byteBuffer.getInt();
-		assert magicNumber == 0x00051607;
+		assert magicNumber == MAGIC_NUMBER;
 
 		int versionNumber = byteBuffer.getInt();
-		assert versionNumber == 0x00020000;
+		assert versionNumber == VERSION_NUMBER;
 
 		byte[] filler = new byte[16];
 		byteBuffer.get(filler);
@@ -40,6 +45,15 @@ class AppleDoubleFile {
 		byteBuffer.position(resourceFileEntry.offset);
 		byteBuffer.get(resourceFileBytes);
 		this.resourceFile = new ResourceFile(resourceFileBytes);
+	}
+
+	static boolean isAppleDouble(byte[] bytes) {
+		ByteBuffer byteBuffer = ByteBuffer.wrap(bytes);
+
+		int magicNumber = byteBuffer.getInt();
+		int versionNumber = byteBuffer.getInt();
+
+		return magicNumber == MAGIC_NUMBER && versionNumber == VERSION_NUMBER;
 	}
 
 	ResourceFile getResourceFile() {

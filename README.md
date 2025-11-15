@@ -102,4 +102,4 @@ Press B at the id Software screen.
 
 ## Building WAD file:
 MacWolf for DOS needs a WAD file that's created when `mvn verify` is run in the `wad` folder.
-Put the Wolfenstein 3D data files in AppleDouble or Resource format in `wad/src/main/resources/input`.
+Put the [Wolfenstein 3D data files](https://archive.org/details/macintosh-wolfenstein-3d-macbinary) in AppleDouble, MacBinary or Resource format in `wad/src/main/resources/input`.

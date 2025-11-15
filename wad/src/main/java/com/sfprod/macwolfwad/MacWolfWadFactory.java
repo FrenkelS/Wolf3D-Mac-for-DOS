@@ -4,14 +4,14 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import com.sfprod.utils.NumberUtils;
 
@@ -47,37 +47,39 @@ public class MacWolfWadFactory {
 	}
 
 	Map<String, ResourceFile> identifyInput() {
-		try (DirectoryStream<Path> stream = Files.newDirectoryStream(Path.of("src/main/resources/input"))) {
-			Map<String, ResourceFile> resources = new HashMap<>();
+		Path inputDirectory = Path.of("src/main/resources/input");
+		try (Stream<Path> stream = Files.walk(inputDirectory)) {
+			return stream.filter(Files::isRegularFile) //
+					.collect(Collectors.toMap( //
+							p -> inputDirectory.relativize(p).toString(), //
+							p -> createResourceFile(inputDirectory, p)));
+		} catch (IOException e) {
+			throw new UncheckedIOException(e);
+		}
+	}
 
-			for (Path path : stream) {
-				String fileName = path.getFileName().toString();
+	private ResourceFile createResourceFile(Path inputDirectory, Path path) {
+		try {
+			ResourceFile resourceFile;
+			String type;
 
-				if (!Files.isRegularFile(path) || Files.size(path) <= 8) {
-					System.out.println("Can't process " + fileName);
-				} else {
-					ResourceFile resourceFile;
-
-					byte[] bytes = Files.readAllBytes(path);
-					ByteBuffer byteBuffer = ByteBuffer.wrap(bytes);
-
-					int magicNumber = byteBuffer.getInt();
-					int versionNumber = byteBuffer.getInt();
-					if (magicNumber == 0x00051607 && versionNumber == 0x00020000) {
-						AppleDoubleFile appleDoubleFile = new AppleDoubleFile(bytes);
-						resourceFile = appleDoubleFile.getResourceFile();
-						System.out.println(
-								fileName + " is an AppleDouble file containing " + resourceFile.getContentType());
-					} else {
-						resourceFile = new ResourceFile(bytes);
-						System.out
-								.println(fileName + " is a Resource file containing " + resourceFile.getContentType());
-					}
-					resources.put(fileName, resourceFile);
-				}
+			byte[] bytes = Files.readAllBytes(path);
+			if (AppleDoubleFile.isAppleDouble(bytes)) {
+				type = "an AppleDouble";
+				AppleDoubleFile appleDoubleFile = new AppleDoubleFile(bytes);
+				resourceFile = appleDoubleFile.getResourceFile();
+			} else if (MacBinaryFile.isMacBinary(bytes)) {
+				type = "a MacBinary";
+				MacBinaryFile macBinaryFile = new MacBinaryFile(bytes);
+				resourceFile = macBinaryFile.getResourceFile();
+			} else {
+				type = "a Resource";
+				resourceFile = new ResourceFile(bytes);
 			}
 
-			return resources;
+			System.out.printf("%s is %s file containing %s%n", inputDirectory.relativize(path), type,
+					resourceFile.getContentType());
+			return resourceFile;
 		} catch (IOException e) {
 			throw new UncheckedIOException(e);
 		}
