@@ -100,6 +100,11 @@ Press B at the id Software screen.
 
 2) Run `bg16my.sh` to build `MWOLF286.EXE`
 
-## Building WAD file:
-MacWolf for DOS needs a WAD file that's created when `mvn verify` is run in the `wad` folder.
-Put the [Wolfenstein 3D data files](https://archive.org/details/macintosh-wolfenstein-3d-macbinary) in AppleDouble, MacBinary or Resource format in `wad/src/main/resources/input`.
+## Building WAD files:
+MacWolf for DOS comes with a First Encounter WAD file called `MACWOLF1.WAD`.
+To create WAD files for the Second and Third Encounter,
+place the [Wolfenstein 3D data files](https://archive.org/details/macintosh-wolfenstein-3d-macbinary) in AppleDouble, MacBinary or Resource format in `wad/src/main/resources/input` and
+run `mvn verify` in the `wad` directory.
+This will generate the files `MACWOLF2.WAD` and `MW3E1.WAD` to `MW3E6.WAD`.
+
+Put custom level packs in the same input directory to generate `MAPS1.WAD`, `MAPS2.WAD`, et cetera.
