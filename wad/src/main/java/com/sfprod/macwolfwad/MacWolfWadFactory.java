@@ -85,16 +85,16 @@ public class MacWolfWadFactory {
 		}
 	}
 
-	void createWad(ResourceFile resourceFile) {
-		createWad(resourceFile, (Type) null);
+	void createWad(String inputFilename, ResourceFile resourceFile) {
+		createWad(inputFilename, resourceFile, (Type) null);
 	}
 
-	void createWad(ResourceFile resourceFile, ResourceFile mapResourceFile) {
+	void createWad(String inputFilename, ResourceFile resourceFile, ResourceFile mapResourceFile) {
 		Type mapBrgr = mapResourceFile.getType("BRGR");
-		createWad(resourceFile, mapBrgr);
+		createWad(inputFilename, resourceFile, mapBrgr);
 	}
 
-	private void createWad(ResourceFile resourceFile, Type mapBrgr) {
+	private void createWad(String inputFilename, ResourceFile resourceFile, Type mapBrgr) {
 		Type brgr = resourceFile.getType("BRGR");
 		wadFile = new WadFile(brgr.calculateMaxId() + 1);
 		processBurger(brgr, mapBrgr);
@@ -112,10 +112,10 @@ public class MacWolfWadFactory {
 		wadFile.removeLump(127); // New Game Pal
 		wadFile.removeLump(199); // Pause shape
 
-		wadFile.saveWadFile(resourceFile.getContentType().getOutputFilename());
+		wadFile.saveWadFile(inputFilename, resourceFile.getContentType().getOutputFilename());
 	}
 
-	void createMapWad(ResourceFile resourceFile, String outputFilename) {
+	void createMapWad(String inputFilename, ResourceFile resourceFile, String outputFilename) {
 		Type brgr = resourceFile.getType("BRGR");
 		wadFile = new WadFile(brgr.calculateMaxId() + 1);
 
@@ -137,7 +137,7 @@ public class MacWolfWadFactory {
 		wadFile.removeLump(MyWallList);
 		wadFile.removeLump(rGamePal);
 
-		wadFile.saveWadFile(outputFilename);
+		wadFile.saveWadFile(inputFilename, outputFilename);
 	}
 
 	private void processBurger(Type brgr, Type mapBrgr) {

@@ -27,7 +27,7 @@ class WadFile {
 		}
 	}
 
-	void saveWadFile(String outputFilename) {
+	void saveWadFile(String inputFilename, String outputFilename) {
 		int filepos = 4 + 4 + 4 + lumps.size() * (4 + 4 + 8);
 		int filesize = filepos + lumps.stream().mapToInt(Lump::length).sum();
 
@@ -79,7 +79,7 @@ class WadFile {
 			throw new UncheckedIOException(e);
 		}
 
-		System.out.println("WAD file of size " + filesizeWithoutDuplicates + " written to " + path.toAbsolutePath());
+		System.out.println(inputFilename + " converted to " + path.toAbsolutePath());
 	}
 
 	int getLumpCount() {
